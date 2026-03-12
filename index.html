@@ -1,0 +1,1851 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#114b5f">
+  <title>Notification Lab</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f4f8f6;
+      --panel: #ffffff;
+      --ink: #13232f;
+      --muted: #4f6272;
+      --accent: #114b5f;
+      --accent-2: #1a936f;
+      --warn: #c17700;
+      --danger: #b02a37;
+      --line: #d6e1e6;
+      --shadow: 0 16px 34px rgba(17, 75, 95, 0.12);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Space Grotesk", "Trebuchet MS", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 12%, rgba(26, 147, 111, 0.25), transparent 28%),
+        radial-gradient(circle at 85% 5%, rgba(17, 75, 95, 0.15), transparent 35%),
+        linear-gradient(180deg, #eef6f4 0%, #f8fbfa 50%, #edf4f8 100%);
+      line-height: 1.4;
+    }
+
+    .app-shell {
+      width: min(1100px, 100% - 1.2rem);
+      margin: 0 auto;
+      padding: 0.8rem 0 5rem;
+    }
+
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      padding: 0.8rem;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: var(--radius);
+      background: rgba(244, 248, 246, 0.85);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      margin-bottom: 0.8rem;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      letter-spacing: 0.02em;
+    }
+
+    h1 {
+      font-size: clamp(1.2rem, 2.8vw, 1.8rem);
+      margin-bottom: 0.55rem;
+    }
+
+    h2 {
+      font-size: 1rem;
+      margin-bottom: 0.65rem;
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 0.45rem;
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      padding: 0.35rem 0.65rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.4rem;
+    }
+
+    .chip strong {
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .quick-actions {
+      position: sticky;
+      top: 104px;
+      z-index: 18;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.45rem;
+      margin-bottom: 0.8rem;
+      padding: 0.7rem;
+      border: 1px solid rgba(17, 75, 95, 0.15);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 8px 18px rgba(17, 75, 95, 0.08);
+    }
+
+    .section-card {
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      padding: 0.85rem;
+      margin-bottom: 0.8rem;
+      animation: rise-in 360ms ease both;
+    }
+
+    @keyframes rise-in {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      margin-bottom: 0.7rem;
+    }
+
+    .subtle {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .grid-2,
+    .grid-3 {
+      display: grid;
+      gap: 0.55rem;
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+
+    label {
+      display: grid;
+      gap: 0.25rem;
+      font-size: 0.83rem;
+      color: var(--muted);
+    }
+
+    input,
+    textarea,
+    select,
+    button {
+      font: inherit;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--ink);
+      padding: 0.56rem;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 78px;
+    }
+
+    .error-note {
+      min-height: 1.1rem;
+      color: var(--danger);
+      font-size: 0.72rem;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-top: 0.55rem;
+    }
+
+    button {
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 0.56rem 0.72rem;
+      cursor: pointer;
+      color: #fff;
+      background: var(--accent);
+      transition: transform 100ms ease, opacity 100ms ease;
+      touch-action: manipulation;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button.secondary {
+      color: var(--ink);
+      background: #e7eef2;
+      border-color: var(--line);
+    }
+
+    button.success {
+      background: var(--accent-2);
+    }
+
+    button.warn {
+      background: var(--warn);
+    }
+
+    button.danger {
+      background: var(--danger);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    details {
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      padding: 0.45rem;
+      margin-top: 0.6rem;
+    }
+
+    summary {
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .list {
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    .item-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fbfdfd;
+      padding: 0.62rem;
+      display: grid;
+      gap: 0.4rem;
+    }
+
+    .item-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .meta {
+      font-family: "IBM Plex Mono", Consolas, monospace;
+      font-size: 0.73rem;
+      color: var(--muted);
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+    }
+
+    .pill {
+      border-radius: 999px;
+      padding: 0.18rem 0.48rem;
+      background: #d9e8ef;
+      color: #13384d;
+      font-size: 0.72rem;
+    }
+
+    .log-wrap {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #f9fcfd;
+      max-height: 260px;
+      overflow: auto;
+      padding: 0.35rem;
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .log-entry {
+      border-left: 4px solid #8aa4b2;
+      padding: 0.4rem 0.5rem;
+      background: #fff;
+      border-radius: 8px;
+      font-size: 0.8rem;
+    }
+
+    .log-entry.info {
+      border-left-color: #528aa8;
+    }
+
+    .log-entry.success {
+      border-left-color: #1a936f;
+    }
+
+    .log-entry.warn {
+      border-left-color: #c17700;
+    }
+
+    .log-entry.error {
+      border-left-color: #b02a37;
+    }
+
+    .toast-stack {
+      position: fixed;
+      left: 0.75rem;
+      right: 0.75rem;
+      bottom: 0.75rem;
+      display: grid;
+      gap: 0.45rem;
+      z-index: 40;
+      pointer-events: none;
+    }
+
+    .toast {
+      pointer-events: auto;
+      border-radius: 12px;
+      padding: 0.6rem 0.72rem;
+      color: #fff;
+      font-size: 0.82rem;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+      animation: toast-in 220ms ease both;
+    }
+
+    .toast.info {
+      background: #315c7a;
+    }
+
+    .toast.success {
+      background: #1f8556;
+    }
+
+    .toast.warn {
+      background: #9a6a12;
+    }
+
+    .toast.error {
+      background: #8f2330;
+    }
+
+    @keyframes toast-in {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .footer-note {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    @media (min-width: 860px) {
+      .quick-actions {
+        top: 86px;
+      }
+
+      .toast-stack {
+        left: auto;
+        width: 320px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header">
+      <h1>Notification Lab</h1>
+      <div class="status-grid">
+        <div class="chip">Environment <strong id="envBadge">static-only</strong></div>
+        <div class="chip">Service worker <strong id="swBadge">unknown</strong></div>
+        <div class="chip">Permission <strong id="permBadge">default</strong></div>
+        <div class="chip">Sync mode <strong id="syncModeBadge">local</strong></div>
+        <div class="chip">Capability <strong id="capabilityBadge">checking</strong></div>
+        <div class="chip">Last sync <strong id="syncBadge">never</strong></div>
+      </div>
+    </header>
+
+    <section class="quick-actions" aria-label="Quick actions">
+      <button id="requestPermBtn">Request permission</button>
+      <button id="registerSwBtn" class="secondary">Register service worker</button>
+      <button id="sendNowBtn" class="success">Send test now</button>
+      <button id="refreshQueueBtn" class="secondary">Refresh queue</button>
+      <button id="syncGithubBtn" class="secondary">Sync now</button>
+      <button id="startPollingBtn" class="warn">Start polling</button>
+      <button id="stopPollingBtn" class="danger">Stop polling</button>
+    </section>
+
+    <section class="section-card" id="composerSection">
+      <div class="section-head">
+        <h2>Notification composer</h2>
+        <span class="subtle">Create local scheduled items or queue entries</span>
+      </div>
+      <div class="grid-2">
+        <label>Title
+          <input id="titleInput" maxlength="80" placeholder="Build complete">
+        </label>
+        <label>Tag / group
+          <input id="tagInput" maxlength="40" placeholder="release">
+        </label>
+      </div>
+      <label>Message / body
+        <textarea id="bodyInput" maxlength="240" placeholder="Your deployment passed the smoke tests."></textarea>
+      </label>
+      <div class="grid-2">
+        <label>Target URL
+          <input id="targetUrlInput" placeholder="/status">
+        </label>
+        <label>Client target
+          <select id="clientTargetInput">
+            <option value="all">All clients</option>
+          </select>
+        </label>
+      </div>
+      <div class="grid-3">
+        <label>Icon URL (optional)
+          <input id="iconUrlInput" placeholder="./assets/icons/icon-192.png">
+        </label>
+        <label>Badge URL (optional)
+          <input id="badgeUrlInput" placeholder="./assets/icons/icon-192.png">
+        </label>
+        <label>Image URL (optional)
+          <input id="imageUrlInput" placeholder="./assets/hero.png">
+        </label>
+      </div>
+      <div class="grid-3">
+        <label>Actions (title:action, comma-separated)
+          <input id="actionsInput" placeholder="Open App:open, View Task:view-task">
+        </label>
+        <label>Delay (seconds)
+          <input id="delayInput" type="number" min="0" step="1" value="0">
+        </label>
+        <label>Repeat every (seconds, 0 = no repeat)
+          <input id="repeatEveryInput" type="number" min="0" step="1" value="0">
+        </label>
+      </div>
+      <div class="grid-3">
+        <label>Repeat count (0 = no repeat)
+          <input id="repeatCountInput" type="number" min="0" step="1" value="0">
+        </label>
+        <label>Require interaction
+          <select id="requireInteractionInput">
+            <option value="false">false</option>
+            <option value="true">true</option>
+          </select>
+        </label>
+        <label>Silent
+          <select id="silentInput">
+            <option value="false">false</option>
+            <option value="true">true</option>
+          </select>
+        </label>
+      </div>
+      <label>Scheduled date/time (optional)
+        <input id="scheduleAtInput" type="datetime-local">
+      </label>
+      <p class="error-note" id="composerError"></p>
+      <div class="button-row">
+        <button id="scheduleLocalBtn" class="success">Schedule local</button>
+        <button id="addQueueBtn" class="secondary">Add to queue</button>
+        <button id="sendInstantBtn">Send instantly</button>
+        <button id="clearFormBtn" class="secondary">Clear form</button>
+      </div>
+      <details>
+        <summary>Advanced tools</summary>
+        <div class="button-row" style="margin-top:0.5rem;">
+          <button id="generateMassBtn" class="warn">Generate 25 mass items</button>
+          <button id="clearCompletedBtn" class="secondary">Clear completed scheduled</button>
+        </div>
+      </details>
+    </section>
+
+    <section class="section-card" id="scheduledSection">
+      <div class="section-head">
+        <h2>Scheduled notifications</h2>
+        <span class="subtle" id="scheduledSummary">0 pending</span>
+      </div>
+      <div class="list" id="scheduledList"></div>
+    </section>
+
+    <section class="section-card" id="queueSection">
+      <div class="section-head">
+        <h2>Queue manager</h2>
+        <span class="subtle">Public JSON and local queue are merged for rendering</span>
+      </div>
+      <div class="grid-3">
+        <label>Status filter
+          <select id="queueStatusFilter">
+            <option value="all">All</option>
+            <option value="queued">Queued</option>
+            <option value="processed">Processed</option>
+          </select>
+        </label>
+        <label>Type filter
+          <select id="queueTypeFilter">
+            <option value="all">All</option>
+            <option value="local">Local</option>
+            <option value="public">Public</option>
+          </select>
+        </label>
+        <label>Client filter
+          <select id="queueClientFilter">
+            <option value="all">All clients</option>
+          </select>
+        </label>
+      </div>
+      <div class="list" id="queueList"></div>
+    </section>
+
+    <section class="section-card" id="clientSection">
+      <div class="section-head">
+        <h2>Client registry / testing</h2>
+        <span class="subtle">Simulated client targeting for static-only mode</span>
+      </div>
+      <div class="grid-3">
+        <label>Client ID
+          <input id="clientIdInput" readonly>
+        </label>
+        <label>Nickname
+          <input id="nicknameInput" maxlength="30" placeholder="My laptop">
+        </label>
+        <label>Subscription status
+          <input id="subscriptionStatusInput" readonly>
+        </label>
+      </div>
+      <p class="meta" id="platformInfo"></p>
+      <div class="button-row">
+        <button id="saveClientBtn" class="secondary">Save client profile</button>
+        <button id="simulateRouteBtn" class="secondary">Simulate route open</button>
+      </div>
+    </section>
+
+    <section class="section-card" id="logSection">
+      <div class="section-head">
+        <h2>Activity log</h2>
+        <span class="subtle">Non-blocking diagnostics</span>
+      </div>
+      <div class="log-wrap" id="logList"></div>
+      <div class="button-row">
+        <button id="exportLogsBtn" class="secondary">Export logs</button>
+        <button id="clearLogsBtn" class="secondary">Clear logs</button>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <h3 style="margin-bottom:0.4rem;">Notes and upgrade path</h3>
+      <p class="footer-note">
+        Static-only mode supports local scheduling and optional queue polling from public JSON.
+        True remote push to closed browsers requires a backend sender plus subscription storage.
+      </p>
+      <p class="footer-note">
+        This build uses same-origin service worker registration at ./sw.js and is compatible with GitHub Pages subpaths.
+      </p>
+    </section>
+  </main>
+
+  <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="false"></div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      // Storage keys are centralized to keep persistence reliable and easy to audit.
+      const STORAGE_KEYS = {
+        appState: "notificationLab.appState.v1"
+      };
+
+      // All runtime state is kept under one namespace to avoid global chaos.
+      const app = {
+        state: {
+          settings: {
+            autoRegisterSw: true,
+            pollingEnabled: false,
+            pollingIntervalMs: 60000,
+            queueUrl: "./queue.json",
+            githubSync: {
+              enabled: false,
+              owner: "",
+              repo: "",
+              path: "queue.json",
+              branch: "main",
+              token: ""
+            }
+          },
+          client: {
+            id: "",
+            nickname: "",
+            platform: "",
+            subscriptionStatus: "not-subscribed"
+          },
+          draft: {
+            title: "",
+            body: "",
+            targetUrl: "/",
+            iconUrl: "",
+            badgeUrl: "",
+            imageUrl: "",
+            tag: "",
+            actionsRaw: "",
+            clientTarget: "all",
+            delaySeconds: 0,
+            repeatEverySeconds: 0,
+            repeatCount: 0,
+            requireInteraction: false,
+            silent: false,
+            source: "local-ui",
+            status: "draft",
+            scheduledAt: ""
+          },
+          scheduled: [],
+          queue: [],
+          processedQueueIds: [],
+          logs: [],
+          runtime: {
+            swRegistered: false,
+            permission: "default",
+            lastSyncAt: null,
+            syncMode: "local",
+            capabilityLabel: "checking"
+          }
+        },
+        timers: new Map(),
+        pollingTimer: null,
+        nodes: {}
+      };
+
+      function qs(id) {
+        return document.getElementById(id);
+      }
+
+      function uid(prefix) {
+        if (window.crypto && window.crypto.randomUUID) {
+          return `${prefix}-${window.crypto.randomUUID()}`;
+        }
+        return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+      }
+
+      function nowIso() {
+        return new Date().toISOString();
+      }
+
+      function tsLabel(iso) {
+        if (!iso) {
+          return "never";
+        }
+        return new Date(iso).toLocaleString();
+      }
+
+      function escapeHtml(input) {
+        return String(input)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/\"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      // Toasts provide non-blocking feedback and auto-expire after a short delay.
+      function toast(type, text, timeout = 3400) {
+        const node = document.createElement("div");
+        node.className = `toast ${type}`;
+        node.textContent = text;
+        app.nodes.toastStack.appendChild(node);
+        window.setTimeout(() => {
+          node.remove();
+        }, timeout);
+      }
+
+      function log(level, message, meta = {}) {
+        const entry = {
+          id: uid("log"),
+          level,
+          message,
+          timestamp: nowIso(),
+          meta
+        };
+        app.state.logs.unshift(entry);
+        if (app.state.logs.length > 300) {
+          app.state.logs.length = 300;
+        }
+        renderLogs();
+        persistState();
+      }
+
+      function persistState() {
+        const snapshot = {
+          settings: app.state.settings,
+          client: app.state.client,
+          draft: app.state.draft,
+          scheduled: app.state.scheduled,
+          queue: app.state.queue,
+          processedQueueIds: app.state.processedQueueIds,
+          logs: app.state.logs,
+          runtime: {
+            lastSyncAt: app.state.runtime.lastSyncAt
+          }
+        };
+        localStorage.setItem(STORAGE_KEYS.appState, JSON.stringify(snapshot));
+      }
+
+      function loadState() {
+        const raw = localStorage.getItem(STORAGE_KEYS.appState);
+        if (!raw) {
+          return;
+        }
+        try {
+          const parsed = JSON.parse(raw);
+          app.state.settings = { ...app.state.settings, ...(parsed.settings || {}) };
+          app.state.client = { ...app.state.client, ...(parsed.client || {}) };
+          app.state.draft = { ...app.state.draft, ...(parsed.draft || {}) };
+          app.state.scheduled = Array.isArray(parsed.scheduled) ? parsed.scheduled : [];
+          app.state.queue = Array.isArray(parsed.queue) ? parsed.queue : [];
+          app.state.processedQueueIds = Array.isArray(parsed.processedQueueIds) ? parsed.processedQueueIds : [];
+          app.state.logs = Array.isArray(parsed.logs) ? parsed.logs : [];
+          app.state.runtime.lastSyncAt = parsed.runtime && parsed.runtime.lastSyncAt ? parsed.runtime.lastSyncAt : null;
+        } catch (error) {
+          toast("error", "State restore failed; using clean defaults.");
+          console.error(error);
+        }
+      }
+
+      function collectNodes() {
+        app.nodes = {
+          envBadge: qs("envBadge"),
+          swBadge: qs("swBadge"),
+          permBadge: qs("permBadge"),
+          syncModeBadge: qs("syncModeBadge"),
+          capabilityBadge: qs("capabilityBadge"),
+          syncBadge: qs("syncBadge"),
+          toastStack: qs("toastStack"),
+          composerError: qs("composerError"),
+          titleInput: qs("titleInput"),
+          bodyInput: qs("bodyInput"),
+          targetUrlInput: qs("targetUrlInput"),
+          iconUrlInput: qs("iconUrlInput"),
+          badgeUrlInput: qs("badgeUrlInput"),
+          imageUrlInput: qs("imageUrlInput"),
+          actionsInput: qs("actionsInput"),
+          tagInput: qs("tagInput"),
+          clientTargetInput: qs("clientTargetInput"),
+          delayInput: qs("delayInput"),
+          repeatEveryInput: qs("repeatEveryInput"),
+          repeatCountInput: qs("repeatCountInput"),
+          requireInteractionInput: qs("requireInteractionInput"),
+          silentInput: qs("silentInput"),
+          scheduleAtInput: qs("scheduleAtInput"),
+          scheduledSummary: qs("scheduledSummary"),
+          scheduledList: qs("scheduledList"),
+          queueList: qs("queueList"),
+          queueStatusFilter: qs("queueStatusFilter"),
+          queueTypeFilter: qs("queueTypeFilter"),
+          queueClientFilter: qs("queueClientFilter"),
+          clientIdInput: qs("clientIdInput"),
+          nicknameInput: qs("nicknameInput"),
+          subscriptionStatusInput: qs("subscriptionStatusInput"),
+          platformInfo: qs("platformInfo"),
+          logList: qs("logList")
+        };
+      }
+
+      function updateStatusBadges() {
+        app.nodes.envBadge.textContent = app.state.runtime.swRegistered ? "real-push-ready" : "static-only";
+        app.nodes.swBadge.textContent = app.state.runtime.swRegistered ? "registered" : "not-registered";
+        app.nodes.permBadge.textContent = app.state.runtime.permission;
+        app.nodes.syncModeBadge.textContent = app.state.runtime.syncMode;
+        app.nodes.capabilityBadge.textContent = app.state.runtime.capabilityLabel;
+        app.nodes.syncBadge.textContent = tsLabel(app.state.runtime.lastSyncAt);
+      }
+
+      function detectCapabilities() {
+        const swOk = "serviceWorker" in navigator;
+        const notifOk = "Notification" in window;
+        const standalone = window.matchMedia("(display-mode: standalone)").matches || Boolean(window.navigator.standalone);
+        const backgroundLikely = swOk && notifOk;
+        app.state.runtime.capabilityLabel = `${backgroundLikely ? "bg-ok" : "bg-limited"}/${standalone ? "installed" : "browser"}`;
+      }
+
+      function getPermissionState() {
+        if (!("Notification" in window)) {
+          return "unsupported";
+        }
+        return Notification.permission;
+      }
+
+      async function requestPermission() {
+        if (!("Notification" in window)) {
+          toast("error", "Notifications are unsupported in this browser.");
+          log("error", "Notification API unsupported.");
+          return;
+        }
+        try {
+          const result = await Notification.requestPermission();
+          app.state.runtime.permission = result;
+          updateStatusBadges();
+          persistState();
+          if (result === "granted") {
+            toast("success", "Notification permission granted.");
+            log("success", "Permission granted.");
+          } else if (result === "denied") {
+            toast("warn", "Permission denied. You can change this in browser settings.");
+            log("warn", "Permission denied.");
+          } else {
+            toast("info", "Permission request dismissed.");
+            log("info", "Permission left in default state.");
+          }
+        } catch (error) {
+          toast("error", "Permission request failed.");
+          log("error", "Permission request failed.", { error: String(error) });
+        }
+      }
+
+      async function registerServiceWorker() {
+        if (!("serviceWorker" in navigator)) {
+          toast("error", "Service worker is not available in this browser.");
+          log("error", "Service worker API unavailable.");
+          return;
+        }
+        try {
+          await navigator.serviceWorker.register("./sw.js");
+          await navigator.serviceWorker.ready;
+          app.state.runtime.swRegistered = true;
+          updateStatusBadges();
+          persistState();
+          toast("success", "Service worker registered at ./sw.js");
+          log("success", "Service worker registered.");
+        } catch (error) {
+          app.state.runtime.swRegistered = false;
+          updateStatusBadges();
+          toast("error", "Service worker registration failed.");
+          log("error", "Service worker registration failed.", { error: String(error) });
+        }
+      }
+
+      function hydrateDraftFromInputs() {
+        app.state.draft.title = app.nodes.titleInput.value.trim();
+        app.state.draft.body = app.nodes.bodyInput.value.trim();
+        app.state.draft.targetUrl = app.nodes.targetUrlInput.value.trim() || "/";
+        app.state.draft.iconUrl = app.nodes.iconUrlInput.value.trim();
+        app.state.draft.badgeUrl = app.nodes.badgeUrlInput.value.trim();
+        app.state.draft.imageUrl = app.nodes.imageUrlInput.value.trim();
+        app.state.draft.tag = app.nodes.tagInput.value.trim();
+        app.state.draft.actionsRaw = app.nodes.actionsInput.value.trim();
+        app.state.draft.clientTarget = app.nodes.clientTargetInput.value;
+        app.state.draft.delaySeconds = Number(app.nodes.delayInput.value || 0);
+        app.state.draft.repeatEverySeconds = Number(app.nodes.repeatEveryInput.value || 0);
+        app.state.draft.repeatCount = Number(app.nodes.repeatCountInput.value || 0);
+        app.state.draft.requireInteraction = app.nodes.requireInteractionInput.value === "true";
+        app.state.draft.silent = app.nodes.silentInput.value === "true";
+        app.state.draft.scheduledAt = app.nodes.scheduleAtInput.value;
+      }
+
+      function fillComposerFromState() {
+        app.nodes.titleInput.value = app.state.draft.title || "";
+        app.nodes.bodyInput.value = app.state.draft.body || "";
+        app.nodes.targetUrlInput.value = app.state.draft.targetUrl || "/";
+        app.nodes.iconUrlInput.value = app.state.draft.iconUrl || "";
+        app.nodes.badgeUrlInput.value = app.state.draft.badgeUrl || "";
+        app.nodes.imageUrlInput.value = app.state.draft.imageUrl || "";
+        app.nodes.tagInput.value = app.state.draft.tag || "";
+        app.nodes.actionsInput.value = app.state.draft.actionsRaw || "";
+        app.nodes.clientTargetInput.value = app.state.draft.clientTarget || "all";
+        app.nodes.delayInput.value = Number.isFinite(app.state.draft.delaySeconds) ? String(app.state.draft.delaySeconds) : "0";
+        app.nodes.repeatEveryInput.value = Number.isFinite(app.state.draft.repeatEverySeconds) ? String(app.state.draft.repeatEverySeconds) : "0";
+        app.nodes.repeatCountInput.value = Number.isFinite(app.state.draft.repeatCount) ? String(app.state.draft.repeatCount) : "0";
+        app.nodes.requireInteractionInput.value = app.state.draft.requireInteraction ? "true" : "false";
+        app.nodes.silentInput.value = app.state.draft.silent ? "true" : "false";
+        app.nodes.scheduleAtInput.value = app.state.draft.scheduledAt || "";
+      }
+
+      function clearComposer() {
+        app.state.draft = {
+          title: "",
+          body: "",
+          targetUrl: "/",
+          iconUrl: "",
+          badgeUrl: "",
+          imageUrl: "",
+          tag: "",
+          actionsRaw: "",
+          clientTarget: "all",
+          delaySeconds: 0,
+          repeatEverySeconds: 0,
+          repeatCount: 0,
+          requireInteraction: false,
+          silent: false,
+          source: "local-ui",
+          status: "draft",
+          scheduledAt: ""
+        };
+        fillComposerFromState();
+        app.nodes.composerError.textContent = "";
+        persistState();
+      }
+
+      function validateDraft(requireSchedule) {
+        const d = app.state.draft;
+        if (!d.title) {
+          return "Title is required.";
+        }
+        if (!d.body) {
+          return "Message body is required.";
+        }
+        if (d.delaySeconds < 0) {
+          return "Delay cannot be negative.";
+        }
+        if (d.repeatEverySeconds < 0 || d.repeatCount < 0) {
+          return "Repeat fields cannot be negative.";
+        }
+        if (d.repeatCount > 0 && d.repeatEverySeconds <= 0) {
+          return "Repeat every must be greater than 0 when repeat count is set.";
+        }
+        if (requireSchedule) {
+          const at = resolveScheduleTime(d.delaySeconds, d.scheduledAt);
+          if (!at || at <= Date.now()) {
+            return "Scheduled time must be in the future.";
+          }
+        }
+        return "";
+      }
+
+      function resolveScheduleTime(delaySeconds, scheduledAt) {
+        if (scheduledAt) {
+          const parsed = new Date(scheduledAt).getTime();
+          if (Number.isFinite(parsed)) {
+            return parsed;
+          }
+        }
+        const plusDelay = Date.now() + Math.max(0, Number(delaySeconds) || 0) * 1000;
+        return plusDelay;
+      }
+
+      function parseActions(raw) {
+        if (!raw) {
+          return [];
+        }
+        return raw
+          .split(",")
+          .map((part) => part.trim())
+          .filter(Boolean)
+          .slice(0, 2)
+          .map((entry, idx) => {
+            const [titlePart, actionPart] = entry.split(":").map((s) => s.trim());
+            return {
+              title: titlePart || `Action ${idx + 1}`,
+              action: actionPart || (titlePart || `action-${idx + 1}`).toLowerCase().replace(/\s+/g, "-")
+            };
+          });
+      }
+
+      function buildNotificationPayload(base) {
+        return {
+          id: uid("notif"),
+          title: base.title,
+          body: base.body,
+          targetUrl: base.targetUrl || "/",
+          icon: base.iconUrl || "",
+          badge: base.badgeUrl || "",
+          image: base.imageUrl || "",
+          tag: base.tag || "",
+          actions: parseActions(base.actionsRaw),
+          requireInteraction: Boolean(base.requireInteraction),
+          silent: Boolean(base.silent),
+          clientTarget: base.clientTarget || "all"
+        };
+      }
+
+      async function attemptGitHubSync(reason) {
+        const cfg = app.state.settings.githubSync;
+        if (!cfg.enabled) {
+          app.state.runtime.syncMode = "local";
+          updateStatusBadges();
+          return;
+        }
+
+        if (!cfg.owner || !cfg.repo || !cfg.path || !cfg.token) {
+          toast("warn", "GitHub sync enabled but config is incomplete.");
+          log("warn", "GitHub sync skipped: missing config.");
+          app.state.runtime.syncMode = "github-config-missing";
+          updateStatusBadges();
+          return;
+        }
+
+        const payload = JSON.stringify({ items: app.state.queue }, null, 2);
+        const apiUrl = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${cfg.path}`;
+        try {
+          const existing = await fetch(apiUrl, {
+            headers: {
+              Authorization: `Bearer ${cfg.token}`,
+              Accept: "application/vnd.github+json"
+            }
+          });
+          let sha = "";
+          if (existing.ok) {
+            const body = await existing.json();
+            sha = body.sha || "";
+          }
+
+          const encoded = btoa(unescape(encodeURIComponent(payload)));
+          const writeResponse = await fetch(apiUrl, {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${cfg.token}`,
+              Accept: "application/vnd.github+json",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              message: `GNESTS sync: ${reason}`,
+              content: encoded,
+              sha,
+              branch: cfg.branch || "main"
+            })
+          });
+
+          if (!writeResponse.ok) {
+            throw new Error(`GitHub sync failed with ${writeResponse.status}`);
+          }
+
+          app.state.runtime.syncMode = "github";
+          app.state.runtime.lastSyncAt = nowIso();
+          updateStatusBadges();
+          persistState();
+          toast("success", "GitHub sync success.");
+          log("success", "GitHub sync success.", { reason });
+        } catch (error) {
+          app.state.runtime.syncMode = "github-failed";
+          updateStatusBadges();
+          toast("error", "GitHub sync failure.");
+          log("error", "GitHub sync failure.", { error: String(error), reason });
+        }
+      }
+
+      async function notifyNow(payload, origin) {
+        if (app.state.runtime.permission !== "granted") {
+          toast("warn", "Permission is not granted.");
+          log("warn", "Notification blocked because permission is not granted.");
+          return false;
+        }
+        if (payload.clientTarget !== "all" && payload.clientTarget !== app.state.client.id) {
+          log("info", "Notification skipped because client target does not match this device.", {
+            target: payload.clientTarget,
+            clientId: app.state.client.id
+          });
+          return false;
+        }
+
+        try {
+          // Prefer service worker display to support background-capable behavior.
+          if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({
+              type: "SHOW_NOTIFICATION",
+              payload
+            });
+          } else if (navigator.serviceWorker) {
+            const reg = await navigator.serviceWorker.getRegistration();
+            if (reg) {
+              await reg.showNotification(payload.title, {
+                body: payload.body,
+                icon: payload.icon || undefined,
+                badge: payload.badge || undefined,
+                tag: payload.tag || undefined,
+                data: {
+                  targetUrl: payload.targetUrl || "/"
+                }
+              });
+            } else {
+              new Notification(payload.title, { body: payload.body });
+            }
+          } else {
+            new Notification(payload.title, { body: payload.body });
+          }
+          toast("success", `Notification sent: ${payload.title}`);
+          log("success", "Notification delivered.", { origin, title: payload.title });
+          return true;
+        } catch (error) {
+          toast("error", "Notification dispatch failed.");
+          log("error", "Notification dispatch failed.", { error: String(error), origin });
+          return false;
+        }
+      }
+
+      function createScheduledItem() {
+        const fireAt = resolveScheduleTime(app.state.draft.delaySeconds, app.state.draft.scheduledAt);
+        return {
+          id: uid("sched"),
+          source: app.state.draft.source || "local-ui",
+          payload: buildNotificationPayload(app.state.draft),
+          createdAt: nowIso(),
+          timestamp: nowIso(),
+          sendAt: fireAt,
+          fireAt,
+          status: "scheduled",
+          repeat: {
+            enabled: app.state.draft.repeatCount > 0 && app.state.draft.repeatEverySeconds > 0,
+            everySeconds: Math.max(0, app.state.draft.repeatEverySeconds),
+            remaining: Math.max(0, app.state.draft.repeatCount)
+          },
+          pausedAt: null,
+          remainingMs: null
+        };
+      }
+
+      function scheduleTimer(itemId) {
+        const item = app.state.scheduled.find((x) => x.id === itemId);
+        if (!item || item.status !== "scheduled") {
+          return;
+        }
+
+        const ms = Math.max(0, item.fireAt - Date.now());
+        const existing = app.timers.get(itemId);
+        if (existing) {
+          window.clearTimeout(existing);
+        }
+
+        const timerId = window.setTimeout(async () => {
+          const current = app.state.scheduled.find((x) => x.id === itemId);
+          if (!current || current.status !== "scheduled") {
+            return;
+          }
+          const ok = await notifyNow(current.payload, "scheduled");
+          if (ok && current.repeat && current.repeat.enabled && current.repeat.remaining > 0) {
+            current.repeat.remaining -= 1;
+            current.fireAt = Date.now() + (current.repeat.everySeconds * 1000);
+            current.sendAt = current.fireAt;
+            current.status = "scheduled";
+            scheduleTimer(itemId);
+          } else {
+            current.status = ok ? "sent" : "failed";
+            current.completedAt = nowIso();
+            app.timers.delete(itemId);
+          }
+          persistState();
+          renderScheduledList();
+        }, ms);
+
+        app.timers.set(itemId, timerId);
+      }
+
+      function restoreAllTimers() {
+        app.state.scheduled.forEach((item) => {
+          if (item.status === "scheduled") {
+            scheduleTimer(item.id);
+          }
+        });
+      }
+
+      function addScheduledFromDraft() {
+        hydrateDraftFromInputs();
+        const error = validateDraft(true);
+        app.nodes.composerError.textContent = error;
+        if (error) {
+          toast("warn", error);
+          return;
+        }
+
+        const item = createScheduledItem();
+        app.state.scheduled.unshift(item);
+        scheduleTimer(item.id);
+        persistState();
+        renderScheduledList();
+        toast("success", "Scheduled item created.");
+        log("success", "Scheduled notification created.", { id: item.id, fireAt: item.fireAt });
+        attemptGitHubSync("schedule-local");
+      }
+
+      function addQueueFromDraft(sourceType) {
+        hydrateDraftFromInputs();
+        const error = validateDraft(false);
+        app.nodes.composerError.textContent = error;
+        if (error) {
+          toast("warn", error);
+          return;
+        }
+
+        const item = {
+          id: uid("queue"),
+          payload: buildNotificationPayload(app.state.draft),
+          source: app.state.draft.source || "local-ui",
+          sourceType,
+          status: "scheduled",
+          createdAt: nowIso(),
+          timestamp: nowIso(),
+          sendAt: resolveScheduleTime(app.state.draft.delaySeconds, app.state.draft.scheduledAt),
+          repeat: {
+            enabled: app.state.draft.repeatCount > 0 && app.state.draft.repeatEverySeconds > 0,
+            everySeconds: Math.max(0, app.state.draft.repeatEverySeconds),
+            remaining: Math.max(0, app.state.draft.repeatCount)
+          },
+          availableAt: resolveScheduleTime(app.state.draft.delaySeconds, app.state.draft.scheduledAt)
+        };
+
+        app.state.queue.unshift(item);
+        persistState();
+        renderQueueList();
+        toast("success", "Queue item added.");
+        log("success", "Queue item created.", { id: item.id, sourceType });
+        attemptGitHubSync("queue-add");
+      }
+
+      async function sendInstantFromDraft() {
+        hydrateDraftFromInputs();
+        const error = validateDraft(false);
+        app.nodes.composerError.textContent = error;
+        if (error) {
+          toast("warn", error);
+          return;
+        }
+        await notifyNow(buildNotificationPayload(app.state.draft), "instant");
+      }
+
+      function scheduleCountdownLabel(item) {
+        if (item.status !== "pending") {
+          return item.status;
+        }
+        const remaining = item.fireAt - Date.now();
+        if (remaining <= 0) {
+          return "due now";
+        }
+        const seconds = Math.ceil(remaining / 1000);
+        const min = Math.floor(seconds / 60);
+        const sec = seconds % 60;
+        return `${min}m ${sec}s`;
+      }
+
+      function renderScheduledList() {
+        const list = app.nodes.scheduledList;
+        if (!app.state.scheduled.length) {
+          list.innerHTML = "<p class='subtle'>No scheduled items yet.</p>";
+          app.nodes.scheduledSummary.textContent = "0 pending";
+          return;
+        }
+
+        let pendingCount = 0;
+        const html = app.state.scheduled.map((item) => {
+          if (item.status === "scheduled") {
+            pendingCount += 1;
+          }
+          return `
+            <article class="item-card">
+              <div class="item-head">
+                <div>
+                  <strong>${escapeHtml(item.payload.title)}</strong>
+                  <div class="meta">${escapeHtml(item.payload.body)}</div>
+                </div>
+                <span class="pill">${escapeHtml(scheduleCountdownLabel(item))}</span>
+              </div>
+              <div class="tag-row">
+                <span class="pill">target: ${escapeHtml(item.payload.clientTarget)}</span>
+                <span class="pill">tag: ${escapeHtml(item.payload.tag || "none")}</span>
+                <span class="pill">at: ${escapeHtml(new Date(item.fireAt).toLocaleString())}</span>
+                <span class="pill">status: ${escapeHtml(item.status)}</span>
+                <span class="pill">repeat: ${escapeHtml(item.repeat && item.repeat.enabled ? `${item.repeat.everySeconds}s x ${item.repeat.remaining}` : "none")}</span>
+              </div>
+              <div class="button-row">
+                <button class="secondary" data-action="edit-scheduled" data-id="${item.id}">Edit</button>
+                <button class="secondary" data-action="pause-scheduled" data-id="${item.id}">Pause</button>
+                <button class="secondary" data-action="resume-scheduled" data-id="${item.id}">Resume</button>
+                <button class="warn" data-action="cancel-scheduled" data-id="${item.id}">Cancel</button>
+                <button class="danger" data-action="delete-scheduled" data-id="${item.id}">Delete</button>
+                <button class="secondary" data-action="duplicate-scheduled" data-id="${item.id}">Duplicate</button>
+              </div>
+            </article>
+          `;
+        }).join("");
+
+        list.innerHTML = html;
+        app.nodes.scheduledSummary.textContent = `${pendingCount} pending`;
+      }
+
+      function queueMatchesFilters(item) {
+        const statusFilter = app.nodes.queueStatusFilter.value;
+        const typeFilter = app.nodes.queueTypeFilter.value;
+        const clientFilter = app.nodes.queueClientFilter.value;
+
+        if (statusFilter !== "all" && item.status !== statusFilter) {
+          return false;
+        }
+        if (typeFilter !== "all" && item.sourceType !== typeFilter) {
+          return false;
+        }
+        if (clientFilter !== "all" && item.payload.clientTarget !== clientFilter) {
+          return false;
+        }
+        return true;
+      }
+
+      function renderQueueList() {
+        const merged = [...app.state.queue];
+        const filtered = merged.filter(queueMatchesFilters);
+
+        if (!filtered.length) {
+          app.nodes.queueList.innerHTML = "<p class='subtle'>No queue items for selected filters.</p>";
+          return;
+        }
+
+        app.nodes.queueList.innerHTML = filtered.map((item) => `
+          <article class="item-card">
+            <div class="item-head">
+              <div>
+                <strong>${escapeHtml(item.payload.title)}</strong>
+                <div class="meta">${escapeHtml(item.payload.body)}</div>
+              </div>
+              <span class="pill">${escapeHtml(item.status)}</span>
+            </div>
+            <div class="tag-row">
+              <span class="pill">source: ${escapeHtml(item.sourceType)}</span>
+              <span class="pill">target: ${escapeHtml(item.payload.clientTarget)}</span>
+              <span class="pill">available: ${escapeHtml(new Date(item.availableAt).toLocaleString())}</span>
+            </div>
+            <div class="button-row">
+              <button data-action="publish-queue" data-id="${item.id}">Publish now</button>
+              <button class="secondary" data-action="edit-queue" data-id="${item.id}">Edit</button>
+              <button class="secondary" data-action="reschedule-queue" data-id="${item.id}">Reschedule</button>
+              <button class="danger" data-action="remove-queue" data-id="${item.id}">Remove</button>
+            </div>
+          </article>
+        `).join("");
+      }
+
+      function renderLogs() {
+        if (!app.state.logs.length) {
+          app.nodes.logList.innerHTML = "<p class='subtle'>No log entries yet.</p>";
+          return;
+        }
+        app.nodes.logList.innerHTML = app.state.logs.map((entry) => `
+          <div class="log-entry ${escapeHtml(entry.level)}">
+            <div><strong>${escapeHtml(entry.level.toUpperCase())}</strong> ${escapeHtml(new Date(entry.timestamp).toLocaleTimeString())}</div>
+            <div>${escapeHtml(entry.message)}</div>
+          </div>
+        `).join("");
+      }
+
+      function renderClientProfile() {
+        app.nodes.clientIdInput.value = app.state.client.id;
+        app.nodes.nicknameInput.value = app.state.client.nickname;
+        app.nodes.subscriptionStatusInput.value = app.state.client.subscriptionStatus;
+        app.nodes.platformInfo.textContent = `Platform: ${app.state.client.platform}`;
+      }
+
+      function refreshClientSelects() {
+        const options = [`<option value="all">All clients</option>`, `<option value="${escapeHtml(app.state.client.id)}">${escapeHtml(app.state.client.id)} (this device)</option>`];
+        app.nodes.clientTargetInput.innerHTML = options.join("");
+        app.nodes.queueClientFilter.innerHTML = options.join("");
+        if (app.state.draft.clientTarget !== "all") {
+          app.nodes.clientTargetInput.value = app.state.draft.clientTarget;
+        }
+      }
+
+      function saveClientProfile() {
+        const nickname = app.nodes.nicknameInput.value.trim();
+        app.state.client.nickname = nickname;
+        persistState();
+        toast("success", "Client profile saved.");
+        log("success", "Client profile updated.", { nickname });
+      }
+
+      function exportLogs() {
+        const payload = JSON.stringify(app.state.logs, null, 2);
+        const blob = new Blob([payload], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `notification-lab-logs-${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      async function fetchPublicQueue() {
+        try {
+          const response = await fetch(app.state.settings.queueUrl, { cache: "no-store" });
+          if (!response.ok) {
+            throw new Error(`Queue fetch failed: ${response.status}`);
+          }
+          const data = await response.json();
+          const items = Array.isArray(data.items) ? data.items : [];
+          let added = 0;
+
+          items.forEach((raw) => {
+            const id = String(raw.id || uid("public"));
+            if (app.state.processedQueueIds.includes(id)) {
+              return;
+            }
+            const payload = {
+              id,
+              title: String(raw.title || "Queue notification"),
+              body: String(raw.body || ""),
+              targetUrl: String(raw.targetUrl || "/"),
+              icon: String(raw.icon || ""),
+              badge: String(raw.badge || ""),
+              image: String(raw.image || ""),
+              tag: String(raw.tag || ""),
+              actions: Array.isArray(raw.actions) ? raw.actions : [],
+              requireInteraction: Boolean(raw.requireInteraction),
+              silent: Boolean(raw.silent),
+              clientTarget: String(raw.clientTarget || "all")
+            };
+            app.state.queue.unshift({
+              id,
+              payload,
+              source: String(raw.source || "queue.json"),
+              sourceType: "public",
+              status: String(raw.status || "scheduled"),
+              createdAt: nowIso(),
+              timestamp: String(raw.timestamp || nowIso()),
+              sendAt: Number(raw.sendAt) || Date.now(),
+              repeat: raw.repeat && typeof raw.repeat === "object" ? raw.repeat : { enabled: false, everySeconds: 0, remaining: 0 },
+              availableAt: Number(raw.availableAt) || Date.now()
+            });
+            added += 1;
+          });
+
+          app.state.runtime.lastSyncAt = nowIso();
+          persistState();
+          updateStatusBadges();
+          renderQueueList();
+          if (added) {
+            toast("success", `Queue synced with ${added} new items.`);
+            log("success", "Public queue sync added new items.", { added });
+          } else {
+            toast("info", "Queue synced with no new items.");
+            log("info", "Public queue sync found no new items.");
+          }
+        } catch (error) {
+          toast("error", "Queue sync failed.");
+          log("error", "Queue sync failed.", { error: String(error) });
+        }
+      }
+
+      async function processQueueEligibility() {
+        const now = Date.now();
+        const candidates = app.state.queue.filter((item) => (item.status === "queued" || item.status === "scheduled") && item.availableAt <= now);
+        for (const item of candidates) {
+          const ok = await notifyNow(item.payload, "queue");
+          item.status = ok ? "sent" : "failed";
+          if (ok) {
+            app.state.processedQueueIds.push(item.id);
+          }
+        }
+        persistState();
+        renderQueueList();
+      }
+
+      function startPolling() {
+        if (app.pollingTimer) {
+          toast("info", "Polling is already running.");
+          return;
+        }
+        app.state.settings.pollingEnabled = true;
+        persistState();
+        app.pollingTimer = window.setInterval(async () => {
+          await fetchPublicQueue();
+          await processQueueEligibility();
+        }, app.state.settings.pollingIntervalMs);
+        toast("success", "Polling started.");
+        log("success", "Polling enabled.", { everyMs: app.state.settings.pollingIntervalMs });
+      }
+
+      function stopPolling() {
+        if (app.pollingTimer) {
+          window.clearInterval(app.pollingTimer);
+          app.pollingTimer = null;
+        }
+        app.state.settings.pollingEnabled = false;
+        persistState();
+        toast("info", "Polling stopped.");
+        log("info", "Polling disabled.");
+      }
+
+      function handleScheduledAction(action, id) {
+        const item = app.state.scheduled.find((x) => x.id === id);
+        if (!item) {
+          return;
+        }
+
+        if (action === "delete-scheduled") {
+          const timerId = app.timers.get(id);
+          if (timerId) {
+            window.clearTimeout(timerId);
+            app.timers.delete(id);
+          }
+          app.state.scheduled = app.state.scheduled.filter((x) => x.id !== id);
+          persistState();
+          renderScheduledList();
+          log("info", "Scheduled item deleted.", { id });
+          return;
+        }
+
+        if (action === "cancel-scheduled") {
+          const timerId = app.timers.get(id);
+          if (timerId) {
+            window.clearTimeout(timerId);
+            app.timers.delete(id);
+          }
+          item.status = "cancelled";
+          persistState();
+          renderScheduledList();
+          log("warn", "Scheduled item cancelled.", { id });
+          return;
+        }
+
+        if (action === "pause-scheduled" && item.status === "scheduled") {
+          const timerId = app.timers.get(id);
+          if (timerId) {
+            window.clearTimeout(timerId);
+            app.timers.delete(id);
+          }
+          item.remainingMs = Math.max(0, item.fireAt - Date.now());
+          item.pausedAt = Date.now();
+          item.status = "paused";
+          persistState();
+          renderScheduledList();
+          log("info", "Scheduled item paused.", { id });
+          return;
+        }
+
+        if (action === "resume-scheduled" && item.status === "paused") {
+          item.fireAt = Date.now() + Math.max(0, item.remainingMs || 0);
+          item.status = "scheduled";
+          item.pausedAt = null;
+          item.remainingMs = null;
+          scheduleTimer(id);
+          persistState();
+          renderScheduledList();
+          log("info", "Scheduled item resumed.", { id });
+          return;
+        }
+
+        if (action === "duplicate-scheduled") {
+          const copy = {
+            ...item,
+            id: uid("sched"),
+            createdAt: nowIso(),
+            fireAt: Date.now() + 30000,
+            status: "pending",
+            pausedAt: null,
+            remainingMs: null
+          };
+          app.state.scheduled.unshift(copy);
+          scheduleTimer(copy.id);
+          persistState();
+          renderScheduledList();
+          log("success", "Scheduled item duplicated with 30s delay.", { id: copy.id });
+          return;
+        }
+
+        if (action === "edit-scheduled") {
+          app.state.draft = {
+            title: item.payload.title,
+            body: item.payload.body,
+            targetUrl: item.payload.targetUrl,
+            iconUrl: item.payload.icon,
+            badgeUrl: item.payload.badge,
+            imageUrl: item.payload.image,
+            tag: item.payload.tag,
+            actionsRaw: Array.isArray(item.payload.actions) ? item.payload.actions.map((a) => `${a.title}:${a.action}`).join(", ") : "",
+            clientTarget: item.payload.clientTarget,
+            delaySeconds: 0,
+            repeatEverySeconds: item.repeat && item.repeat.enabled ? Number(item.repeat.everySeconds || 0) : 0,
+            repeatCount: item.repeat && item.repeat.enabled ? Number(item.repeat.remaining || 0) : 0,
+            requireInteraction: Boolean(item.payload.requireInteraction),
+            silent: Boolean(item.payload.silent),
+            scheduledAt: new Date(item.fireAt).toISOString().slice(0, 16)
+          };
+          fillComposerFromState();
+          toast("info", "Draft loaded from scheduled item.");
+        }
+      }
+
+      async function handleQueueAction(action, id) {
+        const item = app.state.queue.find((x) => x.id === id);
+        if (!item) {
+          return;
+        }
+
+        if (action === "remove-queue") {
+          app.state.queue = app.state.queue.filter((x) => x.id !== id);
+          persistState();
+          renderQueueList();
+          log("info", "Queue item removed.", { id });
+          return;
+        }
+
+        if (action === "publish-queue") {
+          const ok = await notifyNow(item.payload, "queue-manual");
+          if (ok) {
+            item.status = "sent";
+            app.state.processedQueueIds.push(item.id);
+            persistState();
+            renderQueueList();
+            attemptGitHubSync("queue-manual-publish");
+          }
+          return;
+        }
+
+        if (action === "edit-queue") {
+          app.state.draft = {
+            title: item.payload.title,
+            body: item.payload.body,
+            targetUrl: item.payload.targetUrl,
+            iconUrl: item.payload.icon,
+            badgeUrl: item.payload.badge,
+            imageUrl: item.payload.image,
+            tag: item.payload.tag,
+            actionsRaw: Array.isArray(item.payload.actions) ? item.payload.actions.map((a) => `${a.title}:${a.action}`).join(", ") : "",
+            clientTarget: item.payload.clientTarget,
+            delaySeconds: 0,
+            repeatEverySeconds: item.repeat && item.repeat.enabled ? Number(item.repeat.everySeconds || 0) : 0,
+            repeatCount: item.repeat && item.repeat.enabled ? Number(item.repeat.remaining || 0) : 0,
+            requireInteraction: Boolean(item.payload.requireInteraction),
+            silent: Boolean(item.payload.silent),
+            scheduledAt: ""
+          };
+          fillComposerFromState();
+          toast("info", "Draft loaded from queue item.");
+          return;
+        }
+
+        if (action === "reschedule-queue") {
+          item.availableAt = Date.now() + 60000;
+          item.status = "scheduled";
+          persistState();
+          renderQueueList();
+          log("info", "Queue item rescheduled by 60s.", { id });
+          attemptGitHubSync("queue-reschedule");
+        }
+      }
+
+      function wireEvents() {
+        qs("requestPermBtn").addEventListener("click", requestPermission);
+        qs("registerSwBtn").addEventListener("click", registerServiceWorker);
+        qs("sendNowBtn").addEventListener("click", sendInstantFromDraft);
+        qs("refreshQueueBtn").addEventListener("click", async () => {
+          await fetchPublicQueue();
+          await processQueueEligibility();
+        });
+        qs("syncGithubBtn").addEventListener("click", () => attemptGitHubSync("manual"));
+        qs("startPollingBtn").addEventListener("click", startPolling);
+        qs("stopPollingBtn").addEventListener("click", stopPolling);
+
+        qs("scheduleLocalBtn").addEventListener("click", addScheduledFromDraft);
+        qs("addQueueBtn").addEventListener("click", () => addQueueFromDraft("local"));
+        qs("sendInstantBtn").addEventListener("click", sendInstantFromDraft);
+        qs("clearFormBtn").addEventListener("click", clearComposer);
+
+        qs("generateMassBtn").addEventListener("click", () => {
+          const baseTitle = app.nodes.titleInput.value.trim() || "Mass test";
+          for (let i = 0; i < 25; i += 1) {
+            app.state.queue.unshift({
+              id: uid("mass"),
+              payload: {
+                title: `${baseTitle} #${i + 1}`,
+                body: "Mass simulation item",
+                targetUrl: "/",
+                icon: "",
+                badge: "",
+                tag: "mass",
+                clientTarget: "all"
+              },
+              sourceType: "local",
+              status: "scheduled",
+              createdAt: nowIso(),
+              timestamp: nowIso(),
+              sendAt: Date.now() + (i * 350),
+              repeat: { enabled: false, everySeconds: 0, remaining: 0 },
+              availableAt: Date.now() + (i * 350)
+            });
+          }
+          persistState();
+          renderQueueList();
+          toast("success", "25 mass test queue items generated with staggered availability.");
+          log("info", "Mass queue simulation generated.", { count: 25 });
+        });
+
+        qs("clearCompletedBtn").addEventListener("click", () => {
+          app.state.scheduled = app.state.scheduled.filter((item) => item.status === "scheduled" || item.status === "paused");
+          persistState();
+          renderScheduledList();
+          toast("info", "Completed/cancelled scheduled items removed.");
+        });
+
+        qs("saveClientBtn").addEventListener("click", saveClientProfile);
+        qs("simulateRouteBtn").addEventListener("click", () => {
+          const route = app.nodes.targetUrlInput.value.trim() || "/";
+          window.location.href = new URL(route, window.location.href).toString();
+        });
+
+        qs("exportLogsBtn").addEventListener("click", exportLogs);
+        qs("clearLogsBtn").addEventListener("click", () => {
+          app.state.logs = [];
+          persistState();
+          renderLogs();
+          toast("info", "Logs cleared.");
+        });
+
+        app.nodes.scheduledList.addEventListener("click", (event) => {
+          const target = event.target;
+          if (!(target instanceof HTMLElement)) {
+            return;
+          }
+          const action = target.dataset.action;
+          const id = target.dataset.id;
+          if (action && id) {
+            handleScheduledAction(action, id);
+          }
+        });
+
+        app.nodes.queueList.addEventListener("click", async (event) => {
+          const target = event.target;
+          if (!(target instanceof HTMLElement)) {
+            return;
+          }
+          const action = target.dataset.action;
+          const id = target.dataset.id;
+          if (action && id) {
+            await handleQueueAction(action, id);
+          }
+        });
+
+        [
+          app.nodes.titleInput,
+          app.nodes.bodyInput,
+          app.nodes.targetUrlInput,
+          app.nodes.iconUrlInput,
+          app.nodes.badgeUrlInput,
+          app.nodes.imageUrlInput,
+          app.nodes.actionsInput,
+          app.nodes.tagInput,
+          app.nodes.clientTargetInput,
+          app.nodes.delayInput,
+          app.nodes.repeatEveryInput,
+          app.nodes.repeatCountInput,
+          app.nodes.requireInteractionInput,
+          app.nodes.silentInput,
+          app.nodes.scheduleAtInput
+        ].forEach((node) => {
+          node.addEventListener("input", () => {
+            hydrateDraftFromInputs();
+            persistState();
+          });
+        });
+
+        if (navigator.serviceWorker) {
+          navigator.serviceWorker.addEventListener("message", (event) => {
+            const data = event.data;
+            if (!data || typeof data !== "object") {
+              return;
+            }
+            if (data.type === "NOTIFICATION_CLICKED") {
+              log("info", "Notification click captured by service worker.", data.payload || {});
+            }
+            if (data.type === "NOTIFICATION_DISMISSED") {
+              log("warn", "Notification dismissed.", data.payload || {});
+            }
+          });
+        }
+
+        [
+          app.nodes.queueStatusFilter,
+          app.nodes.queueTypeFilter,
+          app.nodes.queueClientFilter
+        ].forEach((node) => {
+          node.addEventListener("change", renderQueueList);
+        });
+      }
+
+      function startCountdownRerender() {
+        window.setInterval(() => {
+          renderScheduledList();
+        }, 1000);
+      }
+
+      async function boot() {
+        collectNodes();
+        loadState();
+
+        // Ensure this browser has a stable client identity for targeted testing.
+        if (!app.state.client.id) {
+          app.state.client.id = uid("client");
+        }
+        app.state.client.platform = navigator.userAgent;
+        app.state.runtime.permission = getPermissionState();
+        detectCapabilities();
+
+        refreshClientSelects();
+        fillComposerFromState();
+        renderClientProfile();
+        renderScheduledList();
+        renderQueueList();
+        renderLogs();
+        updateStatusBadges();
+        wireEvents();
+        restoreAllTimers();
+        startCountdownRerender();
+
+        if (app.state.settings.autoRegisterSw) {
+          await registerServiceWorker();
+        }
+
+        if (app.state.settings.pollingEnabled) {
+          startPolling();
+        }
+
+        // Try to process queue items that were eligible while the app was closed.
+        await processQueueEligibility();
+
+        log("info", "Application startup complete.");
+      }
+
+      boot();
+    })();
+  </script>
+</body>
+</html>

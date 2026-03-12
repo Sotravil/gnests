@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-label="GNESTS icon 192">
+  <rect width="192" height="192" rx="34" fill="#114b5f"/>
+  <circle cx="96" cy="96" r="56" fill="#1a936f"/>
+  <path d="M96 56c-18 0-32 14-32 32v18l-10 12h84l-10-12V88c0-18-14-32-32-32zm0 92a14 14 0 0 0 13-10H83a14 14 0 0 0 13 10z" fill="#f4f8f6"/>
+</svg>
