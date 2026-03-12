@@ -526,8 +526,10 @@
         <label>Status filter
           <select id="queueStatusFilter">
             <option value="all">All</option>
-            <option value="queued">Queued</option>
-            <option value="processed">Processed</option>
+            <option value="scheduled">Scheduled</option>
+            <option value="sent">Sent</option>
+            <option value="failed">Failed</option>
+            <option value="cancelled">Cancelled</option>
           </select>
         </label>
         <label>Type filter
@@ -1247,7 +1249,7 @@
       }
 
       function scheduleCountdownLabel(item) {
-        if (item.status !== "pending") {
+        if (item.status !== "scheduled") {
           return item.status;
         }
         const remaining = item.fireAt - Date.now();
@@ -1569,7 +1571,7 @@
             id: uid("sched"),
             createdAt: nowIso(),
             fireAt: Date.now() + 30000,
-            status: "pending",
+            status: "scheduled",
             pausedAt: null,
             remainingMs: null
           };
