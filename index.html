@@ -3714,9 +3714,13 @@
           approvedAt: nowIso()
         });
 
+        if (deviceChannel) {
+          deviceChannel.postMessage({ type: "DEVICE_LINK_ACCEPT", accept: { requestId, fromClientId: app.state.client.id, fromAlias: app.state.client.nickname || app.state.client.id, toClientId: req.fromClientId, approvedAt: nowIso() } });
+        }
         persistState();
         refreshClientSelects();
         renderLinkingPanels();
+        renderNearbyDevices();
         attemptGitHubSync("link-accept");
         toast("success", "Link request approved.");
       }
@@ -3754,9 +3758,9 @@
 
         const remoteOptions = ["<option value=''>Select linked device</option>"];
         app.state.linking.linkedDevices.forEach((device) => {
-          if ((device.status || "").toLowerCase() === "linked") {
-            remoteOptions.push(`<option value="${escapeHtml(device.id)}">${escapeHtml(device.alias || device.id)}</option>`);
-          }
+          const statusLabel = (device.status || "visible").toLowerCase();
+          const label = escapeHtml(device.alias || device.id) + (statusLabel !== "linked" ? ` (${statusLabel})` : "");
+          remoteOptions.push(`<option value="${escapeHtml(device.id)}">${label}</option>`);
         });
         app.nodes.remoteSendTargetSelect.innerHTML = remoteOptions.join("");
       }
@@ -4924,8 +4928,10 @@
               const d = event.data.device;
               if (d && d.id && d.id !== app.state.client.id) {
                 upsertLinkedDevice({ id: d.id, alias: d.alias || d.id, status: "visible", lastSeenAt: new Date(d.lastSeen).toISOString() });
+                persistState();
                 renderNearbyDevices();
                 renderLinkingPanels();
+                refreshClientSelects();
               }
             }
             if (event.data && event.data.type === "DEVICE_LINK_REQUEST") {
@@ -4937,8 +4943,21 @@
                   persistState();
                   renderLinkingPanels();
                   renderNearbyDevices();
+                  refreshClientSelects();
                   toast("info", "Link request from " + (req.fromAlias || req.fromClientId));
                 }
+              }
+            }
+            if (event.data && event.data.type === "DEVICE_LINK_ACCEPT") {
+              const accept = event.data.accept;
+              if (accept && accept.toClientId === app.state.client.id && accept.fromClientId !== app.state.client.id) {
+                upsertLinkedDevice({ id: accept.fromClientId, alias: accept.fromAlias || accept.fromClientId, status: "linked", lastSeenAt: accept.approvedAt || nowIso() });
+                app.state.linking.outgoingRequests = app.state.linking.outgoingRequests.map((r) => r.id === accept.requestId ? { ...r, status: "approved" } : r);
+                persistState();
+                renderLinkingPanels();
+                renderNearbyDevices();
+                refreshClientSelects();
+                toast("success", "Link approved by " + (accept.fromAlias || accept.fromClientId));
               }
             }
           };
@@ -4984,7 +5003,13 @@
       function startDeviceDiscovery() {
         renderNearbyDevices();
         discoveryTimer = window.setInterval(renderNearbyDevices, 4000);
-        window.addEventListener("storage", (e) => { if (e.key === DEVICE_HEARTBEAT_KEY) renderNearbyDevices(); });
+        window.addEventListener("storage", (e) => {
+          if (e.key === DEVICE_HEARTBEAT_KEY) {
+            renderNearbyDevices();
+            renderLinkingPanels();
+            refreshClientSelects();
+          }
+        });
       }
 
       // ─── Camera QR Scanner ───
@@ -5595,13 +5620,27 @@
         }
 
         const connectPeer = routeUrl.searchParams.get("connectPeer");
-        if (connectPeer) {
+        if (connectPeer && connectPeer !== app.state.client.id) {
           showPanel("remote");
+          const peerAlias = routeUrl.searchParams.get("connectAlias") || connectPeer;
           app.nodes.remotePeerIdInput.value = connectPeer;
-          const peerAlias = routeUrl.searchParams.get("connectAlias") || "";
-          if (peerAlias) {
-            app.nodes.remotePeerAliasInput.value = peerAlias;
+          app.nodes.remotePeerAliasInput.value = peerAlias;
+
+          // Register the source device immediately
+          upsertLinkedDevice({ id: connectPeer, alias: peerAlias, status: "visible", lastSeenAt: nowIso() });
+
+          // Broadcast our own presence so the source device discovers us
+          if (deviceChannel) {
+            deviceChannel.postMessage({ type: "DEVICE_PRESENCE", device: { id: app.state.client.id, alias: app.state.client.nickname || app.state.client.id, platform: app.state.client.platform, lastSeen: Date.now() } });
           }
+
+          // Auto-send a link request to the source device
+          requestLinkPermissionManual(connectPeer, peerAlias);
+
+          persistState();
+          refreshClientSelects();
+          renderLinkingPanels();
+          renderNearbyDevices();
         }
 
         startDeviceHeartbeat();
