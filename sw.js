@@ -6,7 +6,7 @@
   - Provides future push event handler for phase-2 backend integration
 */
 
-const SW_VERSION = "notification-lab-sw-v2";
+const SW_VERSION = "notification-lab-sw-v3";
 const ENABLE_ASSET_CACHE = true;
 const CACHE_NAME = `${SW_VERSION}-static-cache`;
 const STATIC_ASSETS = [
@@ -46,25 +46,52 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Navigation requests (HTML pages): network-first so the latest version is always shown.
+  if (event.request.mode === "navigate") {
+    event.respondWith((async () => {
+      try {
+        const response = await fetch(event.request);
+        const cache = await caches.open(CACHE_NAME);
+        cache.put(event.request, response.clone());
+        return response;
+      } catch (error) {
+        const cached = await caches.match(event.request);
+        if (cached) {
+          return cached;
+        }
+        return new Response("Offline and not cached.", {
+          status: 503,
+          headers: { "Content-Type": "text/plain" }
+        });
+      }
+    })());
+    return;
+  }
+
+  // Other assets: stale-while-revalidate — serve cache immediately, update in background.
   event.respondWith((async () => {
-    const cached = await caches.match(event.request);
-    if (cached) {
-      return cached;
-    }
-    try {
-      const response = await fetch(event.request);
+    const cache = await caches.open(CACHE_NAME);
+    const cached = await cache.match(event.request);
+    const fetchPromise = fetch(event.request).then((response) => {
       const requestUrl = new URL(event.request.url);
       if (requestUrl.origin === self.location.origin) {
-        const cache = await caches.open(CACHE_NAME);
         cache.put(event.request, response.clone());
       }
       return response;
-    } catch (error) {
-      return new Response("Offline and not cached.", {
-        status: 503,
-        headers: { "Content-Type": "text/plain" }
-      });
+    }).catch(() => null);
+
+    if (cached) {
+      return cached;
     }
+
+    const response = await fetchPromise;
+    if (response) {
+      return response;
+    }
+    return new Response("Offline and not cached.", {
+      status: 503,
+      headers: { "Content-Type": "text/plain" }
+    });
   })());
 });
 
