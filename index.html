@@ -80,6 +80,32 @@
       gap: 0.45rem;
     }
 
+    .mode-toolbar {
+      margin-top: 0.65rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.4rem;
+    }
+
+    .mode-btn {
+      background: #e8f2f6;
+      color: #12384a;
+      border: 1px solid var(--line);
+      font-weight: 600;
+    }
+
+    .mode-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .mode-note {
+      margin-top: 0.4rem;
+      font-size: 0.8rem;
+      color: #234959;
+    }
+
     .chip {
       border: 1px solid var(--line);
       background: #fff;
@@ -389,6 +415,212 @@
       color: var(--muted);
     }
 
+    .hidden {
+      display: none !important;
+    }
+
+    .header-tools {
+      margin-top: 0.6rem;
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.4rem;
+      position: relative;
+    }
+
+    .mini-btn {
+      padding: 0.35rem 0.65rem;
+      font-size: 0.76rem;
+    }
+
+    .menu-dropdown {
+      position: absolute;
+      right: 0;
+      top: 2.1rem;
+      min-width: 190px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+      padding: 0.3rem;
+      z-index: 60;
+      display: grid;
+      gap: 0.25rem;
+    }
+
+    .menu-dropdown button {
+      width: 100%;
+      text-align: left;
+      background: #f2f7f9;
+      color: var(--ink);
+      border-color: var(--line);
+    }
+
+    .kebab-btn {
+      border-radius: 8px;
+      line-height: 1;
+      min-width: 2rem;
+      padding: 0.38rem 0.45rem;
+      font-size: 1.05rem;
+      color: var(--ink);
+      background: #eef4f7;
+      border-color: var(--line);
+    }
+
+    .hover-help {
+      position: fixed;
+      max-width: 290px;
+      background: #12384a;
+      color: #f5f9fb;
+      border-radius: 10px;
+      padding: 0.55rem;
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.28);
+      z-index: 70;
+      font-size: 0.75rem;
+      pointer-events: none;
+    }
+
+    .hover-help strong {
+      display: block;
+      margin-bottom: 0.2rem;
+      font-size: 0.78rem;
+    }
+
+    .help-list {
+      display: grid;
+      gap: 0.4rem;
+    }
+
+    .help-item {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0.45rem;
+      background: #f8fcfd;
+      font-size: 0.78rem;
+    }
+
+    .inline-note {
+      margin: 0;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .section-purpose {
+      margin: 0 0 0.6rem;
+      padding: 0.5rem 0.6rem;
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      background: #f5fafb;
+      font-size: 0.78rem;
+      color: #244555;
+    }
+
+    .easy-block-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 0.5rem;
+    }
+
+    .easy-block {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0.6rem;
+      background: linear-gradient(180deg, #f9fdff 0%, #eef7fb 100%);
+      box-shadow: 0 10px 18px rgba(17, 75, 95, 0.08);
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    .easy-block h3 {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      background: rgba(8, 20, 27, 0.65);
+      display: grid;
+      place-items: center;
+      padding: 0.9rem;
+    }
+
+    .modal-card {
+      width: min(700px, 100%);
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 30px rgba(0, 0, 0, 0.25);
+      padding: 0.9rem;
+      display: grid;
+      gap: 0.6rem;
+    }
+
+    .consent-box {
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      padding: 0.6rem;
+      background: #f8fcfd;
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    .code-area {
+      width: 100%;
+      min-height: 170px;
+      font-family: "IBM Plex Mono", Consolas, monospace;
+      font-size: 0.77rem;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #0f1a22;
+      color: #dcf2ff;
+      padding: 0.55rem;
+    }
+
+    .chain-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.6rem;
+    }
+
+    .qr-wrap {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 0.6rem;
+      align-items: center;
+      margin-top: 0.6rem;
+      padding: 0.55rem;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #f8fcfd;
+    }
+
+    .qr-wrap img {
+      width: 128px;
+      height: 128px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #fff;
+      object-fit: contain;
+    }
+
+    body.hide-explanations .subtle,
+    body.hide-explanations .inline-note,
+    body.hide-explanations .section-purpose {
+      display: none !important;
+    }
+
+    body.mode-professional .help-only,
+    body.mode-professional #helpCenterSection,
+    body.mode-professional .kebab-btn {
+      display: none !important;
+    }
+
+    body.mode-easy .advanced-only {
+      display: none !important;
+    }
+
     @media (min-width: 860px) {
       .quick-actions {
         top: 86px;
@@ -412,6 +644,26 @@
         <div class="chip">Sync mode <strong id="syncModeBadge">local</strong></div>
         <div class="chip">Capability <strong id="capabilityBadge">checking</strong></div>
         <div class="chip">Last sync <strong id="syncBadge">never</strong></div>
+        <div class="chip">Mode <strong id="modeBadge">medium</strong></div>
+      </div>
+      <div class="mode-toolbar" id="modeToolbar">
+        <button class="mode-btn" data-mode="easy">Easy</button>
+        <button class="mode-btn" data-mode="medium">Medium</button>
+        <button class="mode-btn" data-mode="hard">Hard</button>
+        <button class="mode-btn" data-mode="professional">Professional</button>
+      </div>
+      <p class="mode-note" id="modeNote">Medium mode balances clarity and control.</p>
+      <div class="header-tools">
+        <button id="helpToggleBtn" class="secondary mini-btn help-only">Help</button>
+        <button id="hamburgerBtn" class="secondary mini-btn" aria-expanded="false" aria-controls="hamburgerMenu">Menu</button>
+        <div id="hamburgerMenu" class="menu-dropdown hidden">
+          <button data-menu-action="open-help">Help center</button>
+          <button data-menu-action="open-settings">Settings</button>
+          <button data-menu-action="open-remote">Remote access</button>
+          <button data-menu-action="open-diagnostics">Diagnostics</button>
+          <button data-menu-action="open-navigator">Section navigator</button>
+          <button id="toggleExplanationsMenuBtn" data-menu-action="toggle-explanations">Hide explanations</button>
+        </div>
       </div>
     </header>
 
@@ -425,11 +677,268 @@
       <button id="stopPollingBtn" class="danger">Stop polling</button>
     </section>
 
+    <section class="section-card hidden" id="easyWorkbenchSection">
+      <div class="section-head">
+        <h2>Easy flow workbench</h2>
+        <span class="subtle">Block-style guided actions for quick success</span>
+      </div>
+      <p class="section-purpose">Purpose: one-tap blocks for setup, quick send, and device linking without deep configuration.</p>
+      <div class="easy-block-grid">
+        <article class="easy-block">
+          <h3>1. Allow notifications</h3>
+          <button id="easyRequestPermBtn">Allow notifications</button>
+          <p class="inline-note">Mandatory before any notification is visible.</p>
+        </article>
+        <article class="easy-block">
+          <h3>2. Enable background helper</h3>
+          <button id="easyRegisterSwBtn" class="secondary">Enable worker</button>
+          <p class="inline-note">Registers service worker for click routing and cache support.</p>
+        </article>
+        <article class="easy-block">
+          <h3>3. Send a fast test</h3>
+          <button id="easyQuickSendBtn" class="success">Send quick test</button>
+          <p class="inline-note">Uses a safe default message and route.</p>
+        </article>
+        <article class="easy-block">
+          <h3>4. Link another device</h3>
+          <button id="easyOpenLinkingBtn" class="secondary">Open linking section</button>
+          <p class="inline-note">Share QR and request link permission quickly.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section-card hidden" id="helpCenterSection">
+      <div class="section-head">
+        <h2>Help center</h2>
+        <span class="subtle">Input and button behavior explained in one place</span>
+      </div>
+      <p class="section-purpose">Purpose: this section explains every control and section role so operators can debug the flow without guessing what each button does.</p>
+      <p class="inline-note" id="helpContextNote">Hover or focus inputs/buttons to see instant tooltips. Use the section dots for quick section help.</p>
+      <div class="help-list" id="helpList"></div>
+      <div class="chain-nav">
+        <button class="secondary" data-nav-target="home">Back to workspace</button>
+        <button class="secondary" data-open-window="help">Open help in new window</button>
+        <button class="secondary" data-nav-target="navigator">Open section navigator</button>
+      </div>
+    </section>
+
+    <section class="section-card hidden" id="settingsSection">
+      <div class="section-head">
+        <h2>Settings</h2>
+        <span class="subtle">Core behavior toggles and sync configuration</span>
+      </div>
+      <p class="section-purpose">Purpose: configure scheduling, polling, sync, and real relay options that control whether background notifications can be delivered and retried.</p>
+      <div class="grid-3">
+        <label>Auto register service worker
+          <select id="settingAutoSwInput">
+            <option value="true">true</option>
+            <option value="false">false</option>
+          </select>
+        </label>
+        <label>Polling interval (ms)
+          <input id="settingPollingMsInput" type="number" min="5000" step="1000" value="60000">
+        </label>
+        <label>Enable GitHub sync
+          <select id="settingGithubEnabledInput">
+            <option value="false">false</option>
+            <option value="true">true</option>
+          </select>
+        </label>
+      </div>
+      <div class="grid-3">
+        <label>Enable push relay (real remote)
+          <select id="settingRelayEnabledInput">
+            <option value="false">false</option>
+            <option value="true">true</option>
+          </select>
+        </label>
+        <label>Relay base URL
+          <input id="settingRelayBaseUrlInput" placeholder="https://your-relay.example.com">
+        </label>
+        <label>VAPID public key
+          <input id="settingRelayVapidInput" placeholder="BEl...">
+        </label>
+      </div>
+      <label>Relay API key (optional)
+        <input id="settingRelayApiKeyInput" type="password" placeholder="relay_key_...">
+      </label>
+      <div class="button-row">
+        <button id="subscribePushBtn" class="secondary">Subscribe for real push</button>
+        <button id="registerRelayBtn" class="secondary">Register device with relay</button>
+      </div>
+      <div class="grid-2">
+        <label>GitHub owner
+          <input id="settingGithubOwnerInput" placeholder="Sotravil">
+        </label>
+        <label>GitHub repo
+          <input id="settingGithubRepoInput" placeholder="gnests">
+        </label>
+      </div>
+      <div class="grid-2">
+        <label>Sync file path
+          <input id="settingGithubPathInput" placeholder="queue.json">
+        </label>
+        <label>Git branch
+          <input id="settingGithubBranchInput" placeholder="main">
+        </label>
+      </div>
+      <label>GitHub token (dev use only)
+        <input id="settingGithubTokenInput" type="password" placeholder="ghp_...">
+      </label>
+      <div class="button-row">
+        <button id="saveSettingsBtn" class="secondary">Save settings</button>
+      </div>
+      <div class="chain-nav">
+        <button class="secondary" data-nav-target="home">Back to workspace</button>
+        <button class="secondary" data-open-window="settings">Open settings in new window</button>
+        <button class="secondary" data-nav-target="diagnostics">Run diagnostics section</button>
+      </div>
+    </section>
+
+    <section class="section-card hidden" id="remoteAccessSection">
+      <div class="section-head">
+        <h2>Remote access routing</h2>
+        <span class="subtle">Share route links for opt-in remote notification flows</span>
+      </div>
+      <p class="section-purpose">Purpose: link devices, generate route links, and send real relay-backed remote notifications with optional response routing.</p>
+      <p class="inline-note">Static-only mode can share access links and metadata, but real closed-browser remote push still requires a sender backend.</p>
+      <div class="grid-3">
+        <label>Your device ID
+          <input id="remoteLocalClientIdInput" readonly>
+        </label>
+        <label>Peer device ID
+          <input id="remotePeerIdInput" placeholder="client-...">
+        </label>
+        <label>Peer nickname (optional)
+          <input id="remotePeerAliasInput" placeholder="Teammate phone">
+        </label>
+      </div>
+      <div class="button-row">
+        <button id="requestShareLinkBtn" class="secondary">Request link permission</button>
+        <button id="announcePresenceBtn" class="secondary">Announce this device</button>
+      </div>
+      <div class="grid-2">
+        <label>Shared gateway base URL
+          <input id="remoteHubBaseInput" placeholder="https://example.com/notify-hub">
+        </label>
+        <label>Channel / topic
+          <input id="remoteTopicInput" placeholder="team-alpha">
+        </label>
+      </div>
+      <label>Generated invite link
+        <input id="remoteShareLinkOutput" readonly>
+      </label>
+      <div class="button-row">
+        <button id="generateRemoteLinkBtn" class="secondary">Generate link</button>
+        <button id="copyRemoteLinkBtn" class="secondary">Copy link</button>
+        <button id="openRemoteLinkBtn" class="secondary">Open link</button>
+      </div>
+      <div class="qr-wrap">
+        <img id="deviceLinkQrImg" alt="Device link QR code" src="">
+        <div>
+          <label>QR route to link this device
+            <input id="deviceLinkRouteOutput" readonly>
+          </label>
+          <div class="button-row">
+            <button id="generateDeviceQrBtn" class="secondary">Generate QR route</button>
+            <button id="copyDeviceRouteBtn" class="secondary">Copy QR route</button>
+          </div>
+          <p class="inline-note">Scan this QR from another device to jump directly into linked-device routing for this client.</p>
+        </div>
+      </div>
+      <div class="grid-3" style="margin-top:0.6rem;">
+        <label>Send remote to linked device
+          <select id="remoteSendTargetSelect">
+            <option value="">Select linked device</option>
+          </select>
+        </label>
+        <label>Remote notification title
+          <input id="remoteSendTitleInput" placeholder="Remote test">
+        </label>
+        <label>Remote notification body
+          <input id="remoteSendBodyInput" placeholder="Message from linked device">
+        </label>
+      </div>
+      <div class="button-row">
+        <button id="sendRemoteNowBtn" class="secondary">Send real remote notification</button>
+      </div>
+      <div class="grid-3" style="margin-top:0.6rem;">
+        <label>Reply to notification ID
+          <input id="responseToIdInput" readonly>
+        </label>
+        <label>Reply target client ID
+          <input id="responseToClientInput" readonly>
+        </label>
+        <label>Reply text
+          <input id="responseTextInput" placeholder="Acknowledged. I saw this notification.">
+        </label>
+      </div>
+      <div class="button-row">
+        <button id="sendResponseBtn" class="secondary">Send response message</button>
+      </div>
+      <div class="grid-2" style="margin-top:0.6rem;">
+        <div>
+          <h3 style="margin-bottom:0.4rem;">Incoming link requests</h3>
+          <div class="list" id="incomingRequestsList"></div>
+        </div>
+        <div>
+          <h3 style="margin-bottom:0.4rem;">Linked / visible devices</h3>
+          <div class="list" id="linkedDevicesList"></div>
+        </div>
+      </div>
+      <div class="chain-nav">
+        <button class="secondary" data-nav-target="home">Back to workspace</button>
+        <button class="secondary" data-open-window="remote">Open remote in new window</button>
+        <button class="secondary" data-nav-target="diagnostics">Check sync diagnostics</button>
+      </div>
+    </section>
+
+    <section class="section-card hidden" id="diagnosticsSection">
+      <div class="section-head">
+        <h2>Diagnostics and fix center</h2>
+        <span class="subtle">Find root causes for missed tasks and sync failures</span>
+      </div>
+      <p class="section-purpose">Purpose: detect why tasks were not completed on schedule, why background delivery failed, why device sync stalled, and show explicit fixes.</p>
+      <p class="inline-note">Covers permission issues, service worker issues, offline state, delayed timers, relay setup gaps, and stale link-sync requests.</p>
+      <div class="button-row">
+        <button id="runDiagnosticsBtn" class="secondary">Run diagnostics scan</button>
+        <button id="openLogsFromDiagnosticsBtn" class="secondary">Open logs section</button>
+      </div>
+      <div class="list" id="diagnosticList"></div>
+      <div class="chain-nav">
+        <button class="secondary" data-nav-target="home">Back to workspace</button>
+        <button class="secondary" data-open-window="diagnostics">Open diagnostics in new window</button>
+        <button class="secondary" data-nav-target="settings">Open settings</button>
+      </div>
+    </section>
+
+    <section class="section-card hidden" id="navigatorSection">
+      <div class="section-head">
+        <h2>Section navigator</h2>
+        <span class="subtle">Chain-linked navigation between all major sections</span>
+      </div>
+      <p class="section-purpose">Purpose: jump between related sections quickly, open focused windows, and keep workflow chained end-to-end.</p>
+      <div class="grid-3">
+        <button class="secondary" data-nav-target="composerSection">Go to composer</button>
+        <button class="secondary" data-nav-target="scheduledSection">Go to scheduled</button>
+        <button class="secondary" data-nav-target="queueSection">Go to queue</button>
+        <button class="secondary" data-nav-target="clientSection">Go to client registry</button>
+        <button class="secondary" data-nav-target="logSection">Go to logs</button>
+        <button class="secondary" data-nav-target="remote">Go to remote access</button>
+      </div>
+      <div class="chain-nav">
+        <button class="secondary" data-open-window="navigator">Open navigator in new window</button>
+        <button class="secondary" data-nav-target="help">Open help center</button>
+        <button class="secondary" data-nav-target="home">Back to workspace</button>
+      </div>
+    </section>
+
     <section class="section-card" id="composerSection">
       <div class="section-head">
         <h2>Notification composer</h2>
         <span class="subtle">Create local scheduled items or queue entries</span>
       </div>
+      <p class="section-purpose">Purpose: compose notification payloads and choose whether to send now, schedule later, or queue for sync and processing.</p>
       <div class="grid-2">
         <label>Title
           <input id="titleInput" maxlength="80" placeholder="Build complete">
@@ -514,6 +1023,7 @@
         <h2>Scheduled notifications</h2>
         <span class="subtle" id="scheduledSummary">0 pending</span>
       </div>
+      <p class="section-purpose">Purpose: monitor timer-based tasks, pause/resume, and inspect delayed or failed scheduled notifications.</p>
       <div class="list" id="scheduledList"></div>
     </section>
 
@@ -522,6 +1032,7 @@
         <h2>Queue manager</h2>
         <span class="subtle">Public JSON and local queue are merged for rendering</span>
       </div>
+      <p class="section-purpose">Purpose: manage queued tasks from local and public sources, then publish/reschedule/remove with full status visibility.</p>
       <div class="grid-3">
         <label>Status filter
           <select id="queueStatusFilter">
@@ -553,6 +1064,7 @@
         <h2>Client registry / testing</h2>
         <span class="subtle">Simulated client targeting for static-only mode</span>
       </div>
+      <p class="section-purpose">Purpose: keep device identity stable for targeting, linking, and relay registration across sessions.</p>
       <div class="grid-3">
         <label>Client ID
           <input id="clientIdInput" readonly>
@@ -576,11 +1088,28 @@
         <h2>Activity log</h2>
         <span class="subtle">Non-blocking diagnostics</span>
       </div>
+      <p class="section-purpose">Purpose: provide timestamped evidence for failures, warnings, and recovery actions so troubleshooting is explicit.</p>
       <div class="log-wrap" id="logList"></div>
       <div class="button-row">
         <button id="exportLogsBtn" class="secondary">Export logs</button>
         <button id="clearLogsBtn" class="secondary">Clear logs</button>
       </div>
+    </section>
+
+    <section class="section-card hidden" id="proConsoleSection">
+      <div class="section-head">
+        <h2>Professional manual console</h2>
+        <span class="subtle">Scripted controls for advanced operators</span>
+      </div>
+      <p class="section-purpose">Purpose: run manual scripts against app helpers for direct control, automation, and deep testing workflows.</p>
+      <label>Script input (local only)
+        <textarea id="proScriptInput" class="code-area" spellcheck="false">helpers.log("info", "Professional script ready.");</textarea>
+      </label>
+      <div class="button-row">
+        <button id="runProScriptBtn" class="warn">Run script</button>
+        <button id="proSendTestScriptBtn" class="secondary">Insert send-test script</button>
+      </div>
+      <p class="inline-note">Available helpers: notifyNow, buildPayload, requestPermission, registerServiceWorker, runDiagnosticsScan, log, toast.</p>
     </section>
 
     <section class="section-card">
@@ -596,6 +1125,28 @@
   </main>
 
   <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="false"></div>
+  <div class="hover-help hidden" id="hoverHelp" role="tooltip"></div>
+  <div id="onboardingModal" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
+    <section class="modal-card">
+      <h2 id="onboardingTitle">Welcome setup and consent</h2>
+      <p class="inline-note">Before using notifications, please confirm consent and device setup permissions.</p>
+      <div class="consent-box">
+        <label>
+          <input id="consentFingerprintInput" type="checkbox">
+          I accept that this app creates a local device fingerprint (client ID + platform signature) for tracking linked-device routing and notification usage.
+        </label>
+        <label>
+          <input id="consentNotificationInput" type="checkbox">
+          I allow notification permission flow and service worker usage for background-capable behavior on desktop and mobile browsers.
+        </label>
+      </div>
+      <p class="inline-note">Mobile note: iOS and Android browsers may still limit true background behavior depending on install state, browser policy, and power settings.</p>
+      <div class="button-row">
+        <button id="acceptOnboardingBtn" class="success">Accept and continue</button>
+        <button id="declineOnboardingBtn" class="secondary">Continue with limited mode</button>
+      </div>
+    </section>
+  </div>
 
   <script>
     (() => {
@@ -613,7 +1164,17 @@
             autoRegisterSw: true,
             pollingEnabled: false,
             pollingIntervalMs: 60000,
+            showExplanations: true,
+            complexityLevel: "medium",
+            onboardingAccepted: false,
+            consentFingerprint: false,
             queueUrl: "./queue.json",
+            relay: {
+              enabled: false,
+              baseUrl: "",
+              vapidPublicKey: "",
+              apiKey: ""
+            },
             githubSync: {
               enabled: false,
               owner: "",
@@ -627,7 +1188,8 @@
             id: "",
             nickname: "",
             platform: "",
-            subscriptionStatus: "not-subscribed"
+            subscriptionStatus: "not-subscribed",
+            pushSubscription: null
           },
           draft: {
             title: "",
@@ -652,6 +1214,11 @@
           queue: [],
           processedQueueIds: [],
           logs: [],
+          linking: {
+            linkedDevices: [],
+            incomingRequests: [],
+            outgoingRequests: []
+          },
           runtime: {
             swRegistered: false,
             permission: "default",
@@ -662,7 +1229,125 @@
         },
         timers: new Map(),
         pollingTimer: null,
-        nodes: {}
+        nodes: {},
+        ui: {
+          activeHelpControl: null
+        }
+      };
+
+      const HELP_MAP = {
+        requestPermBtn: {
+          title: "Request permission",
+          detail: "Asks the browser for notification permission.",
+          impact: "Updates Permission badge and allows notification sends when granted."
+        },
+        registerSwBtn: {
+          title: "Register service worker",
+          detail: "Registers ./sw.js on the current origin scope.",
+          impact: "Enables worker-driven notifications, click routing, and offline caching."
+        },
+        sendNowBtn: {
+          title: "Send test now",
+          detail: "Sends a notification immediately from the current draft.",
+          impact: "Creates a runtime notification and log entry."
+        },
+        refreshQueueBtn: {
+          title: "Refresh queue",
+          detail: "Fetches queue.json and processes due queue items.",
+          impact: "Updates queue list, sync timestamp, and logs."
+        },
+        syncGithubBtn: {
+          title: "Sync now",
+          detail: "Attempts optional GitHub API sync using saved settings.",
+          impact: "Changes Sync mode badge and writes queue snapshot remotely."
+        },
+        startPollingBtn: {
+          title: "Start polling",
+          detail: "Starts repeated queue sync + processing on an interval.",
+          impact: "Continuously fetches queue and processes due tasks."
+        },
+        stopPollingBtn: {
+          title: "Stop polling",
+          detail: "Stops repeated queue polling.",
+          impact: "Leaves app in manual sync mode."
+        },
+        scheduleLocalBtn: {
+          title: "Schedule local",
+          detail: "Creates a scheduled notification task from the composer draft.",
+          impact: "Adds an item to Scheduled notifications and starts timers."
+        },
+        addQueueBtn: {
+          title: "Add to queue",
+          detail: "Creates a queue item from the draft without immediate send.",
+          impact: "Adds to Queue manager and can later be published or auto-processed."
+        },
+        sendInstantBtn: {
+          title: "Send instantly",
+          detail: "Instantly delivers current draft using service worker/message flow.",
+          impact: "Fast runtime test notification."
+        },
+        titleInput: {
+          title: "Title",
+          detail: "Main heading shown in notification UI.",
+          impact: "Required for creating and sending tasks."
+        },
+        bodyInput: {
+          title: "Message body",
+          detail: "Notification content text.",
+          impact: "Required for sending notifications."
+        },
+        targetUrlInput: {
+          title: "Target URL",
+          detail: "Route or URL to open when notification is clicked.",
+          impact: "Used by service worker click handling."
+        },
+        actionsInput: {
+          title: "Actions",
+          detail: "Comma-separated title:action pairs for notification action buttons.",
+          impact: "Action metadata is sent to service worker and click logs."
+        },
+        repeatEveryInput: {
+          title: "Repeat every",
+          detail: "Interval between repeated sends.",
+          impact: "Combined with repeat count to reschedule timer after each send."
+        },
+        repeatCountInput: {
+          title: "Repeat count",
+          detail: "How many repeat cycles remain.",
+          impact: "Controls repeated scheduling lifespan."
+        },
+        generateRemoteLinkBtn: {
+          title: "Generate remote link",
+          detail: "Builds a shareable invite URL with client/channel metadata.",
+          impact: "Helps route users to grant remote notification access on a shared gateway."
+        },
+        runDiagnosticsBtn: {
+          title: "Run diagnostics scan",
+          detail: "Scans runtime state and queued tasks for failure patterns.",
+          impact: "Produces explicit root causes and fix instructions for delayed or failed workflows."
+        },
+        generateDeviceQrBtn: {
+          title: "Generate QR route",
+          detail: "Builds a direct link route and QR code for device linking.",
+          impact: "Allows another device to scan and jump into remote linking with peer prefilled."
+        }
+      };
+
+      const SECTION_HELP = {
+        composerSection: "Composer builds the source payload and controls scheduling, queueing, and instant test sends.",
+        scheduledSection: "Scheduled panel runs local timers, supports pause/resume, and tracks status progression.",
+        queueSection: "Queue manager filters local/public queue tasks and controls publish/edit/reschedule/remove actions.",
+        clientSection: "Client registry stores this device identity used for targeted notifications.",
+        logSection: "Activity log records system actions, warnings, and errors for diagnostics.",
+        diagnosticsSection: "Diagnostics scans missed tasks, sync gaps, and background limitations with fix guidance.",
+        navigatorSection: "Section navigator chains section-to-section flow and open-in-new-window routes."
+      };
+
+      const MODE_NOTES = {
+        easy: "Easy mode uses guided block actions with minimal setup choices.",
+        medium: "Medium mode balances clarity and control.",
+        hard: "Hard mode exposes more diagnostics and operational controls.",
+        professional: "Professional mode prioritizes manual workflows and scriptable controls with minimal explanation noise."
       };
 
       function qs(id) {
@@ -732,6 +1417,7 @@
           queue: app.state.queue,
           processedQueueIds: app.state.processedQueueIds,
           logs: app.state.logs,
+          linking: app.state.linking,
           runtime: {
             lastSyncAt: app.state.runtime.lastSyncAt
           }
@@ -753,6 +1439,11 @@
           app.state.queue = Array.isArray(parsed.queue) ? parsed.queue : [];
           app.state.processedQueueIds = Array.isArray(parsed.processedQueueIds) ? parsed.processedQueueIds : [];
           app.state.logs = Array.isArray(parsed.logs) ? parsed.logs : [];
+          app.state.linking = {
+            linkedDevices: parsed.linking && Array.isArray(parsed.linking.linkedDevices) ? parsed.linking.linkedDevices : [],
+            incomingRequests: parsed.linking && Array.isArray(parsed.linking.incomingRequests) ? parsed.linking.incomingRequests : [],
+            outgoingRequests: parsed.linking && Array.isArray(parsed.linking.outgoingRequests) ? parsed.linking.outgoingRequests : []
+          };
           app.state.runtime.lastSyncAt = parsed.runtime && parsed.runtime.lastSyncAt ? parsed.runtime.lastSyncAt : null;
         } catch (error) {
           toast("error", "State restore failed; using clean defaults.");
@@ -768,7 +1459,24 @@
           syncModeBadge: qs("syncModeBadge"),
           capabilityBadge: qs("capabilityBadge"),
           syncBadge: qs("syncBadge"),
+          modeBadge: qs("modeBadge"),
+          modeToolbar: qs("modeToolbar"),
+          modeNote: qs("modeNote"),
           toastStack: qs("toastStack"),
+          onboardingModal: qs("onboardingModal"),
+          consentFingerprintInput: qs("consentFingerprintInput"),
+          consentNotificationInput: qs("consentNotificationInput"),
+          acceptOnboardingBtn: qs("acceptOnboardingBtn"),
+          declineOnboardingBtn: qs("declineOnboardingBtn"),
+          easyWorkbenchSection: qs("easyWorkbenchSection"),
+          easyRequestPermBtn: qs("easyRequestPermBtn"),
+          easyRegisterSwBtn: qs("easyRegisterSwBtn"),
+          easyQuickSendBtn: qs("easyQuickSendBtn"),
+          easyOpenLinkingBtn: qs("easyOpenLinkingBtn"),
+          proConsoleSection: qs("proConsoleSection"),
+          proScriptInput: qs("proScriptInput"),
+          runProScriptBtn: qs("runProScriptBtn"),
+          proSendTestScriptBtn: qs("proSendTestScriptBtn"),
           composerError: qs("composerError"),
           titleInput: qs("titleInput"),
           bodyInput: qs("bodyInput"),
@@ -785,6 +1493,8 @@
           requireInteractionInput: qs("requireInteractionInput"),
           silentInput: qs("silentInput"),
           scheduleAtInput: qs("scheduleAtInput"),
+          clientSection: qs("clientSection"),
+          logSection: qs("logSection"),
           scheduledSummary: qs("scheduledSummary"),
           scheduledList: qs("scheduledList"),
           queueList: qs("queueList"),
@@ -795,8 +1505,908 @@
           nicknameInput: qs("nicknameInput"),
           subscriptionStatusInput: qs("subscriptionStatusInput"),
           platformInfo: qs("platformInfo"),
-          logList: qs("logList")
+          logList: qs("logList"),
+          helpToggleBtn: qs("helpToggleBtn"),
+          hamburgerBtn: qs("hamburgerBtn"),
+          hamburgerMenu: qs("hamburgerMenu"),
+          helpCenterSection: qs("helpCenterSection"),
+          helpList: qs("helpList"),
+          helpContextNote: qs("helpContextNote"),
+          settingsSection: qs("settingsSection"),
+          remoteAccessSection: qs("remoteAccessSection"),
+          diagnosticsSection: qs("diagnosticsSection"),
+          navigatorSection: qs("navigatorSection"),
+          toggleExplanationsMenuBtn: qs("toggleExplanationsMenuBtn"),
+          hoverHelp: qs("hoverHelp"),
+          settingAutoSwInput: qs("settingAutoSwInput"),
+          settingPollingMsInput: qs("settingPollingMsInput"),
+          settingGithubEnabledInput: qs("settingGithubEnabledInput"),
+          settingRelayEnabledInput: qs("settingRelayEnabledInput"),
+          settingRelayBaseUrlInput: qs("settingRelayBaseUrlInput"),
+          settingRelayVapidInput: qs("settingRelayVapidInput"),
+          settingRelayApiKeyInput: qs("settingRelayApiKeyInput"),
+          subscribePushBtn: qs("subscribePushBtn"),
+          registerRelayBtn: qs("registerRelayBtn"),
+          settingGithubOwnerInput: qs("settingGithubOwnerInput"),
+          settingGithubRepoInput: qs("settingGithubRepoInput"),
+          settingGithubPathInput: qs("settingGithubPathInput"),
+          settingGithubBranchInput: qs("settingGithubBranchInput"),
+          settingGithubTokenInput: qs("settingGithubTokenInput"),
+          saveSettingsBtn: qs("saveSettingsBtn"),
+          remoteHubBaseInput: qs("remoteHubBaseInput"),
+          remoteTopicInput: qs("remoteTopicInput"),
+          remoteShareLinkOutput: qs("remoteShareLinkOutput"),
+          generateRemoteLinkBtn: qs("generateRemoteLinkBtn"),
+          copyRemoteLinkBtn: qs("copyRemoteLinkBtn"),
+          openRemoteLinkBtn: qs("openRemoteLinkBtn"),
+          deviceLinkQrImg: qs("deviceLinkQrImg"),
+          deviceLinkRouteOutput: qs("deviceLinkRouteOutput"),
+          generateDeviceQrBtn: qs("generateDeviceQrBtn"),
+          copyDeviceRouteBtn: qs("copyDeviceRouteBtn"),
+          remoteLocalClientIdInput: qs("remoteLocalClientIdInput"),
+          remotePeerIdInput: qs("remotePeerIdInput"),
+          remotePeerAliasInput: qs("remotePeerAliasInput"),
+          requestShareLinkBtn: qs("requestShareLinkBtn"),
+          announcePresenceBtn: qs("announcePresenceBtn"),
+          remoteSendTargetSelect: qs("remoteSendTargetSelect"),
+          remoteSendTitleInput: qs("remoteSendTitleInput"),
+          remoteSendBodyInput: qs("remoteSendBodyInput"),
+          sendRemoteNowBtn: qs("sendRemoteNowBtn"),
+          responseToIdInput: qs("responseToIdInput"),
+          responseToClientInput: qs("responseToClientInput"),
+          responseTextInput: qs("responseTextInput"),
+          sendResponseBtn: qs("sendResponseBtn"),
+          incomingRequestsList: qs("incomingRequestsList"),
+          linkedDevicesList: qs("linkedDevicesList"),
+          runDiagnosticsBtn: qs("runDiagnosticsBtn"),
+          openLogsFromDiagnosticsBtn: qs("openLogsFromDiagnosticsBtn"),
+          diagnosticList: qs("diagnosticList")
         };
+      }
+
+      function updateExplanationMenuLabel() {
+        if (!app.nodes.toggleExplanationsMenuBtn) {
+          return;
+        }
+        app.nodes.toggleExplanationsMenuBtn.textContent = app.state.settings.showExplanations ? "Hide explanations" : "Show explanations";
+      }
+
+      function setExplanationVisibility(show, persist = true) {
+        app.state.settings.showExplanations = Boolean(show);
+        document.body.classList.toggle("hide-explanations", !app.state.settings.showExplanations);
+        updateExplanationMenuLabel();
+        if (persist) {
+          persistState();
+        }
+      }
+
+      function setOnboardingModalVisibility(show) {
+        app.nodes.onboardingModal.classList.toggle("hidden", !show);
+      }
+
+      function applyComplexityMode(mode, persist = true) {
+        const allowed = ["easy", "medium", "hard", "professional"];
+        const level = allowed.includes(mode) ? mode : "medium";
+        app.state.settings.complexityLevel = level;
+
+        document.body.classList.remove("mode-easy", "mode-medium", "mode-hard", "mode-professional");
+        document.body.classList.add(`mode-${level}`);
+        app.nodes.modeBadge.textContent = level;
+        app.nodes.modeNote.textContent = MODE_NOTES[level] || MODE_NOTES.medium;
+
+        app.nodes.modeToolbar.querySelectorAll("[data-mode]").forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.mode === level);
+        });
+
+        const easy = level === "easy";
+        const professional = level === "professional";
+
+        app.nodes.easyWorkbenchSection.classList.toggle("hidden", !easy);
+        app.nodes.proConsoleSection.classList.toggle("hidden", !professional);
+
+        app.nodes.clientSection.classList.toggle("hidden", easy);
+        app.nodes.logSection.classList.toggle("hidden", false);
+
+        qs("syncGithubBtn").classList.toggle("hidden", easy);
+        qs("startPollingBtn").classList.toggle("hidden", easy);
+        qs("stopPollingBtn").classList.toggle("hidden", easy);
+
+        if (professional) {
+          setExplanationVisibility(false, false);
+        }
+        if (easy) {
+          setExplanationVisibility(true, false);
+        }
+
+        if (persist) {
+          persistState();
+        }
+      }
+
+      async function acceptOnboarding() {
+        if (!app.nodes.consentFingerprintInput.checked) {
+          toast("warn", "Fingerprint consent is required to continue with linking and tracking features.");
+          return;
+        }
+
+        app.state.settings.consentFingerprint = true;
+        app.state.settings.onboardingAccepted = true;
+        setOnboardingModalVisibility(false);
+        persistState();
+
+        log("success", "Onboarding accepted with fingerprint consent.");
+
+        if (app.nodes.consentNotificationInput.checked) {
+          await requestPermission();
+          await registerServiceWorker();
+          if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+            toast("info", "Mobile note: background behavior depends on browser policy and install state.");
+            log("info", "Mobile-specific background constraints explained to user.");
+          }
+        } else {
+          toast("warn", "Notification permission was skipped. You can enable it later.");
+        }
+      }
+
+      function declineOnboarding() {
+        app.state.settings.onboardingAccepted = true;
+        app.state.settings.consentFingerprint = false;
+        setOnboardingModalVisibility(false);
+        persistState();
+        log("warn", "Onboarding completed in limited mode without fingerprint consent.");
+        toast("warn", "Limited mode enabled. Linking and tracking-oriented features may be restricted.");
+      }
+
+      function insertProSendTestScript() {
+        app.nodes.proScriptInput.value = [
+          "const payload = helpers.buildPayload({ title: \"Pro Script Test\", body: \"Triggered from professional console\", tag: \"pro-script\" });",
+          "await helpers.notifyNow(payload);",
+          "helpers.log(\"success\", \"Professional script sent a test notification.\");"
+        ].join("\n");
+      }
+
+      async function runProfessionalScript() {
+        const code = app.nodes.proScriptInput.value.trim();
+        if (!code) {
+          toast("warn", "Script area is empty.");
+          return;
+        }
+
+        const helpers = {
+          notifyNow: async (payload) => notifyNow(payload, "pro-script"),
+          buildPayload: (override = {}) => ({ ...buildNotificationPayload(app.state.draft), ...override }),
+          requestPermission,
+          registerServiceWorker,
+          runDiagnosticsScan,
+          log,
+          toast
+        };
+
+        try {
+          const fn = new Function("helpers", "app", `\"use strict\"; return (async () => { ${code} })();`);
+          await fn(helpers, app);
+          toast("success", "Professional script executed.");
+        } catch (error) {
+          toast("error", "Professional script failed.");
+          log("error", "Professional script execution failed.", { error: String(error) });
+        }
+      }
+
+      function buildPanelUrl(panelKey) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("help");
+        url.searchParams.delete("remote");
+        url.searchParams.delete("settings");
+        url.searchParams.delete("diagnostics");
+        url.searchParams.delete("navigator");
+        if (panelKey === "help") {
+          url.searchParams.set("help", "1");
+        }
+        if (panelKey === "remote") {
+          url.searchParams.set("remote", "1");
+        }
+        if (panelKey === "settings") {
+          url.searchParams.set("settings", "1");
+        }
+        if (panelKey === "diagnostics") {
+          url.searchParams.set("diagnostics", "1");
+        }
+        if (panelKey === "navigator") {
+          url.searchParams.set("navigator", "1");
+        }
+        return url.toString();
+      }
+
+      function openPanelInNewWindow(panelKey) {
+        window.open(buildPanelUrl(panelKey), "_blank", "noopener");
+      }
+
+      function renderHelpCenter() {
+        const items = Object.entries(HELP_MAP)
+          .map(([id, info]) => `
+            <article class="help-item">
+              <strong>${escapeHtml(info.title)}</strong>
+              <div>${escapeHtml(info.detail)}</div>
+              <div class="subtle">Changes: ${escapeHtml(info.impact)}</div>
+              <div class="meta">Control: ${escapeHtml(id)}</div>
+            </article>
+          `)
+          .join("");
+        app.nodes.helpList.innerHTML = items || "<p class='subtle'>No help metadata loaded.</p>";
+      }
+
+      function showPanel(panelName) {
+        const panelMap = {
+          help: app.nodes.helpCenterSection,
+          settings: app.nodes.settingsSection,
+          remote: app.nodes.remoteAccessSection,
+          diagnostics: app.nodes.diagnosticsSection,
+          navigator: app.nodes.navigatorSection
+        };
+        Object.values(panelMap).forEach((node) => node.classList.add("hidden"));
+        if (panelMap[panelName]) {
+          panelMap[panelName].classList.remove("hidden");
+        }
+      }
+
+      function navigateTo(target) {
+        if (!target || target === "home") {
+          showPanel("");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          return;
+        }
+
+        if (target === "help" || target === "settings" || target === "remote" || target === "diagnostics" || target === "navigator") {
+          showPanel(target);
+          return;
+        }
+
+        showPanel("");
+        const section = qs(target);
+        if (section) {
+          section.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+
+      function setupSectionDots() {
+        document.querySelectorAll(".section-head").forEach((head) => {
+          const section = head.closest(".section-card");
+          if (!section || !section.id || section.id === "helpCenterSection" || section.id === "settingsSection" || section.id === "remoteAccessSection") {
+            return;
+          }
+          if (head.querySelector(".kebab-btn")) {
+            return;
+          }
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "kebab-btn";
+          btn.textContent = "\u22ef";
+          btn.setAttribute("aria-label", "How this section works");
+          btn.dataset.sectionHelp = section.id;
+          head.appendChild(btn);
+        });
+      }
+
+      function showHoverHelp(controlId, anchor) {
+        const help = HELP_MAP[controlId];
+        if (!help || !anchor) {
+          return;
+        }
+        app.ui.activeHelpControl = controlId;
+        app.nodes.hoverHelp.innerHTML = `
+          <strong>${escapeHtml(help.title)}</strong>
+          <div>${escapeHtml(help.detail)}</div>
+          <div class="subtle">${escapeHtml(help.impact)}</div>
+        `;
+        const rect = anchor.getBoundingClientRect();
+        const top = Math.max(8, rect.top + window.scrollY - 74);
+        const left = Math.min(window.innerWidth - 300, Math.max(8, rect.left + window.scrollX));
+        app.nodes.hoverHelp.style.top = `${top}px`;
+        app.nodes.hoverHelp.style.left = `${left}px`;
+        app.nodes.hoverHelp.classList.remove("hidden");
+      }
+
+      function hideHoverHelp() {
+        app.ui.activeHelpControl = null;
+        app.nodes.hoverHelp.classList.add("hidden");
+      }
+
+      function attachHoverHelp() {
+        Object.keys(HELP_MAP).forEach((id) => {
+          const node = qs(id);
+          if (!node) {
+            return;
+          }
+          node.addEventListener("mouseenter", () => showHoverHelp(id, node));
+          node.addEventListener("focus", () => showHoverHelp(id, node));
+          node.addEventListener("mouseleave", hideHoverHelp);
+          node.addEventListener("blur", hideHoverHelp);
+        });
+      }
+
+      function hydrateSettingsUI() {
+        const cfg = app.state.settings;
+        app.nodes.settingAutoSwInput.value = cfg.autoRegisterSw ? "true" : "false";
+        app.nodes.settingPollingMsInput.value = String(cfg.pollingIntervalMs || 60000);
+        app.nodes.settingGithubEnabledInput.value = cfg.githubSync.enabled ? "true" : "false";
+        app.nodes.settingRelayEnabledInput.value = cfg.relay.enabled ? "true" : "false";
+        app.nodes.settingRelayBaseUrlInput.value = cfg.relay.baseUrl || "";
+        app.nodes.settingRelayVapidInput.value = cfg.relay.vapidPublicKey || "";
+        app.nodes.settingRelayApiKeyInput.value = cfg.relay.apiKey || "";
+        app.nodes.settingGithubOwnerInput.value = cfg.githubSync.owner || "";
+        app.nodes.settingGithubRepoInput.value = cfg.githubSync.repo || "";
+        app.nodes.settingGithubPathInput.value = cfg.githubSync.path || "queue.json";
+        app.nodes.settingGithubBranchInput.value = cfg.githubSync.branch || "main";
+        app.nodes.settingGithubTokenInput.value = cfg.githubSync.token || "";
+        setExplanationVisibility(cfg.showExplanations !== false, false);
+        applyComplexityMode(cfg.complexityLevel || "medium", false);
+      }
+
+      function applySettingsFromUI() {
+        app.state.settings.autoRegisterSw = app.nodes.settingAutoSwInput.value === "true";
+        app.state.settings.pollingIntervalMs = Math.max(5000, Number(app.nodes.settingPollingMsInput.value || 60000));
+        app.state.settings.githubSync.enabled = app.nodes.settingGithubEnabledInput.value === "true";
+        app.state.settings.relay.enabled = app.nodes.settingRelayEnabledInput.value === "true";
+        app.state.settings.relay.baseUrl = app.nodes.settingRelayBaseUrlInput.value.trim();
+        app.state.settings.relay.vapidPublicKey = app.nodes.settingRelayVapidInput.value.trim();
+        app.state.settings.relay.apiKey = app.nodes.settingRelayApiKeyInput.value.trim();
+        app.state.settings.githubSync.owner = app.nodes.settingGithubOwnerInput.value.trim();
+        app.state.settings.githubSync.repo = app.nodes.settingGithubRepoInput.value.trim();
+        app.state.settings.githubSync.path = app.nodes.settingGithubPathInput.value.trim() || "queue.json";
+        app.state.settings.githubSync.branch = app.nodes.settingGithubBranchInput.value.trim() || "main";
+        app.state.settings.githubSync.token = app.nodes.settingGithubTokenInput.value.trim();
+        persistState();
+        toast("success", "Settings saved.");
+        log("success", "Settings updated.", {
+          autoRegisterSw: app.state.settings.autoRegisterSw,
+          pollingIntervalMs: app.state.settings.pollingIntervalMs,
+          githubEnabled: app.state.settings.githubSync.enabled,
+          relayEnabled: app.state.settings.relay.enabled,
+          showExplanations: app.state.settings.showExplanations
+        });
+      }
+
+      function b64ToUint8Array(base64String) {
+        const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+        const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+        const rawData = atob(base64);
+        return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
+      }
+
+      function relayHeaders() {
+        const headers = { "Content-Type": "application/json" };
+        if (app.state.settings.relay.apiKey) {
+          headers.Authorization = `Bearer ${app.state.settings.relay.apiKey}`;
+        }
+        return headers;
+      }
+
+      async function subscribeForRealPush() {
+        if (!app.state.settings.relay.enabled) {
+          toast("warn", "Enable push relay first in settings.");
+          return;
+        }
+        if (!app.state.settings.relay.vapidPublicKey) {
+          toast("warn", "Missing VAPID public key in settings.");
+          return;
+        }
+        if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+          toast("error", "Push API unsupported in this browser.");
+          return;
+        }
+
+        try {
+          const reg = await navigator.serviceWorker.ready;
+          const existing = await reg.pushManager.getSubscription();
+          const subscription = existing || await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: b64ToUint8Array(app.state.settings.relay.vapidPublicKey)
+          });
+
+          app.state.client.pushSubscription = subscription.toJSON();
+          app.state.client.subscriptionStatus = "subscribed";
+          persistState();
+          renderClientProfile();
+          toast("success", "Push subscription created.");
+          log("success", "Push subscription ready.");
+        } catch (error) {
+          toast("error", "Push subscription failed.");
+          log("error", "Push subscription failed.", { error: String(error) });
+        }
+      }
+
+      async function registerDeviceWithRelay() {
+        const relayBase = app.state.settings.relay.baseUrl;
+        if (!app.state.settings.relay.enabled || !relayBase) {
+          toast("warn", "Configure relay base URL and enable relay first.");
+          return;
+        }
+        if (!app.state.client.pushSubscription) {
+          toast("warn", "Create push subscription before relay registration.");
+          return;
+        }
+
+        try {
+          const response = await fetch(`${relayBase.replace(/\/$/, "")}/api/devices/register`, {
+            method: "POST",
+            headers: relayHeaders(),
+            body: JSON.stringify({
+              clientId: app.state.client.id,
+              alias: app.state.client.nickname || app.state.client.id,
+              platform: app.state.client.platform,
+              subscription: app.state.client.pushSubscription
+            })
+          });
+          if (!response.ok) {
+            throw new Error(`Relay register failed: ${response.status}`);
+          }
+          toast("success", "Device registered with relay.");
+          log("success", "Relay device registration complete.");
+        } catch (error) {
+          toast("error", "Relay device registration failed.");
+          log("error", "Relay device registration failed.", { error: String(error) });
+        }
+      }
+
+      async function sendRealRemoteNotification(targetClientId, payload, meta = {}) {
+        const relayBase = app.state.settings.relay.baseUrl;
+        if (!app.state.settings.relay.enabled || !relayBase) {
+          toast("warn", "Relay is not configured. Cannot send real closed-browser remote push.");
+          return false;
+        }
+
+        try {
+          const response = await fetch(`${relayBase.replace(/\/$/, "")}/api/messages/send`, {
+            method: "POST",
+            headers: relayHeaders(),
+            body: JSON.stringify({
+              fromClientId: app.state.client.id,
+              toClientId: targetClientId,
+              payload,
+              meta
+            })
+          });
+          if (!response.ok) {
+            throw new Error(`Relay send failed: ${response.status}`);
+          }
+          log("success", "Real remote notification queued by relay.", { targetClientId });
+          return true;
+        } catch (error) {
+          log("error", "Real remote notification failed.", { error: String(error), targetClientId });
+          return false;
+        }
+      }
+
+      async function sendRemoteNowFromUI() {
+        const targetClientId = app.nodes.remoteSendTargetSelect.value;
+        if (!targetClientId) {
+          toast("warn", "Choose a linked target device first.");
+          return;
+        }
+        const title = app.nodes.remoteSendTitleInput.value.trim() || "Remote test";
+        const body = app.nodes.remoteSendBodyInput.value.trim() || "Remote notification message";
+        const payload = {
+          id: uid("notif"),
+          title,
+          body,
+          targetUrl: `/?remote=1&replyTo=${encodeURIComponent(app.state.client.id)}`,
+          tag: "real-remote",
+          clientTarget: targetClientId,
+          actions: [
+            { title: "Open", action: "open" },
+            { title: "Respond", action: "respond" }
+          ],
+          responseTargetClientId: app.state.client.id
+        };
+
+        const ok = await sendRealRemoteNotification(targetClientId, payload, { mode: "direct" });
+        if (ok) {
+          toast("success", "Real remote notification request sent to relay.");
+        } else {
+          toast("error", "Failed to send real remote notification.");
+        }
+      }
+
+      async function sendResponseMessage() {
+        const targetClientId = app.nodes.responseToClientInput.value.trim();
+        const responseText = app.nodes.responseTextInput.value.trim();
+        const replyToNotificationId = app.nodes.responseToIdInput.value.trim();
+        if (!targetClientId) {
+          toast("warn", "No reply target selected.");
+          return;
+        }
+        if (!responseText) {
+          toast("warn", "Response text is required.");
+          return;
+        }
+
+        const payload = {
+          id: uid("notif"),
+          title: "Notification response",
+          body: responseText,
+          targetUrl: "/?remote=1",
+          tag: "remote-response",
+          clientTarget: targetClientId,
+          actions: [{ title: "Open", action: "open" }],
+          responseToNotificationId: replyToNotificationId,
+          responseFromClientId: app.state.client.id
+        };
+
+        const ok = await sendRealRemoteNotification(targetClientId, payload, { mode: "response" });
+        if (ok) {
+          toast("success", "Response sent via relay.");
+          app.nodes.responseTextInput.value = "";
+        } else {
+          toast("error", "Response send failed.");
+        }
+      }
+
+      function generateRemoteShareLink() {
+        const base = app.nodes.remoteHubBaseInput.value.trim();
+        const topic = app.nodes.remoteTopicInput.value.trim() || "default";
+        if (!base) {
+          toast("warn", "Please provide a shared gateway base URL.");
+          return "";
+        }
+        let normalized;
+        try {
+          normalized = new URL(base).toString().replace(/\/$/, "");
+        } catch (error) {
+          toast("error", "Remote gateway URL is invalid.");
+          return "";
+        }
+
+        const invite = new URL(`${normalized}/join`);
+        invite.searchParams.set("topic", topic);
+        invite.searchParams.set("client", app.state.client.id || "unknown-client");
+        invite.searchParams.set("source", window.location.origin + window.location.pathname);
+        invite.searchParams.set("mode", "remote-opt-in");
+
+        const output = invite.toString();
+        app.nodes.remoteShareLinkOutput.value = output;
+        log("info", "Remote invite link generated.", { topic, output });
+        return output;
+      }
+
+      function buildDeviceLinkRoute() {
+        const url = new URL(window.location.href);
+        url.searchParams.set("remote", "1");
+        url.searchParams.set("connectPeer", app.state.client.id || "unknown-client");
+        url.searchParams.set("connectAlias", app.state.client.nickname || app.state.client.id || "Peer");
+        return url.toString();
+      }
+
+      function generateDeviceQrRoute() {
+        const route = buildDeviceLinkRoute();
+        app.nodes.deviceLinkRouteOutput.value = route;
+        const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(route)}`;
+        app.nodes.deviceLinkQrImg.src = qrSrc;
+        log("info", "Device link QR route generated.", { route });
+        return route;
+      }
+
+      function renderDiagnostics(results) {
+        if (!results.length) {
+          app.nodes.diagnosticList.innerHTML = "<p class='subtle'>No problems detected right now. Keep monitoring if tasks are intermittent.</p>";
+          return;
+        }
+
+        app.nodes.diagnosticList.innerHTML = results.map((result) => `
+          <article class="item-card">
+            <div class="item-head">
+              <strong>${escapeHtml(result.issue)}</strong>
+              <span class="pill">${escapeHtml(result.severity)}</span>
+            </div>
+            <div class="meta">Signal: ${escapeHtml(result.signal)}</div>
+            <div>${escapeHtml(result.impact)}</div>
+            <div class="subtle">Fix: ${escapeHtml(result.fix)}</div>
+          </article>
+        `).join("");
+      }
+
+      function runDiagnosticsScan() {
+        const now = Date.now();
+        const findings = [];
+        const overdueScheduled = app.state.scheduled.filter((item) => item.status === "scheduled" && (now - Number(item.fireAt || now)) > 15000);
+        const staleOutgoingLinks = app.state.linking.outgoingRequests.filter((req) => req.status === "pending" && (now - new Date(req.createdAt).getTime()) > 120000);
+
+        if (app.state.runtime.permission !== "granted") {
+          findings.push({
+            severity: "warn",
+            signal: "permission",
+            issue: "Notification permission is not granted.",
+            impact: "Scheduled and queue tasks may complete logically but cannot display notifications.",
+            fix: "Use Request permission in quick actions and allow notifications in browser site settings."
+          });
+        }
+
+        if (!app.state.runtime.swRegistered) {
+          findings.push({
+            severity: "warn",
+            signal: "service-worker",
+            issue: "Service worker is not registered.",
+            impact: "Background-like notification flow and worker click routing are unavailable.",
+            fix: "Register the service worker and verify sw.js is served from the same origin path."
+          });
+        }
+
+        if (!navigator.onLine) {
+          findings.push({
+            severity: "error",
+            signal: "offline",
+            issue: "Device is offline.",
+            impact: "Queue sync, GitHub sync, relay send, and QR-hosted services can fail while offline.",
+            fix: "Reconnect internet, then run Refresh queue and Run diagnostics scan again."
+          });
+        }
+
+        if (overdueScheduled.length) {
+          findings.push({
+            severity: "warn",
+            signal: "overdue-scheduled",
+            issue: `${overdueScheduled.length} scheduled task(s) are overdue.`,
+            impact: "Tasks may be delayed by background timer throttling, suspended tabs, or missed run windows.",
+            fix: "Keep app tab open for local timers, install as PWA when possible, or move critical delivery to relay push backend."
+          });
+        }
+
+        if (app.state.settings.relay.enabled && (!app.state.settings.relay.baseUrl || !app.state.settings.relay.vapidPublicKey)) {
+          findings.push({
+            severity: "warn",
+            signal: "relay-config",
+            issue: "Relay mode enabled but relay configuration is incomplete.",
+            impact: "Real closed-browser remote notifications cannot be delivered.",
+            fix: "Provide relay base URL and VAPID public key in settings, then subscribe and register device."
+          });
+        }
+
+        if (staleOutgoingLinks.length) {
+          findings.push({
+            severity: "info",
+            signal: "link-sync",
+            issue: `${staleOutgoingLinks.length} link request(s) are still pending.`,
+            impact: "Device sync is incomplete, so targeted remote sends may fail or skip intended peers.",
+            fix: "Share the QR route with peers, ask them to approve in Remote access, then refresh queue or sync."
+          });
+        }
+
+        if (!app.state.linking.linkedDevices.length) {
+          findings.push({
+            severity: "info",
+            signal: "no-linked-devices",
+            issue: "No linked devices found.",
+            impact: "Remote target selectors have no linked peers for direct routing.",
+            fix: "Generate the QR route and scan from another device to start link request flow."
+          });
+        }
+
+        if (!findings.length) {
+          log("success", "Diagnostics scan completed with no active issues.");
+        } else {
+          log("warn", "Diagnostics scan found issues.", { count: findings.length, findings });
+        }
+
+        renderDiagnostics(findings);
+      }
+
+      function upsertLinkedDevice(device) {
+        if (!device || !device.id) {
+          return;
+        }
+        const existing = app.state.linking.linkedDevices.find((entry) => entry.id === device.id);
+        if (existing) {
+          existing.alias = device.alias || existing.alias || "";
+          existing.status = device.status || existing.status || "visible";
+          existing.lastSeenAt = device.lastSeenAt || nowIso();
+        } else {
+          app.state.linking.linkedDevices.unshift({
+            id: device.id,
+            alias: device.alias || "",
+            status: device.status || "visible",
+            lastSeenAt: device.lastSeenAt || nowIso()
+          });
+        }
+      }
+
+      function queueSignal(signalKind, signalData) {
+        const signalItem = {
+          id: uid("signal"),
+          source: "linking",
+          sourceType: "local",
+          status: "scheduled",
+          signalKind,
+          signalData,
+          payload: {
+            id: uid("notif"),
+            title: `Signal: ${signalKind}`,
+            body: "Device linking signal",
+            targetUrl: "/",
+            icon: "",
+            badge: "",
+            image: "",
+            tag: "device-signal",
+            actions: [],
+            requireInteraction: false,
+            silent: true,
+            clientTarget: "all"
+          },
+          createdAt: nowIso(),
+          timestamp: nowIso(),
+          sendAt: Date.now(),
+          repeat: { enabled: false, everySeconds: 0, remaining: 0 },
+          availableAt: Date.now()
+        };
+        app.state.queue.unshift(signalItem);
+      }
+
+      function requestLinkPermission() {
+        const peerId = app.nodes.remotePeerIdInput.value.trim();
+        const peerAlias = app.nodes.remotePeerAliasInput.value.trim();
+        if (!peerId) {
+          toast("warn", "Peer device ID is required to request linking.");
+          return;
+        }
+        if (peerId === app.state.client.id) {
+          toast("warn", "You cannot request link permission from the same device.");
+          return;
+        }
+
+        const request = {
+          id: uid("req"),
+          fromClientId: app.state.client.id,
+          fromAlias: app.state.client.nickname || app.state.client.id,
+          toClientId: peerId,
+          toAlias: peerAlias,
+          createdAt: nowIso(),
+          status: "pending"
+        };
+
+        app.state.linking.outgoingRequests.unshift(request);
+        queueSignal("link-request", request);
+        persistState();
+        renderLinkingPanels();
+        attemptGitHubSync("link-request");
+        toast("success", "Link permission request queued.");
+        log("info", "Link request created.", { to: peerId });
+      }
+
+      function announcePresence() {
+        queueSignal("presence", {
+          clientId: app.state.client.id,
+          alias: app.state.client.nickname || app.state.client.id,
+          platform: app.state.client.platform,
+          lastSeenAt: nowIso()
+        });
+        persistState();
+        attemptGitHubSync("presence");
+        toast("success", "Presence announcement queued.");
+      }
+
+      function approveIncomingRequest(requestId) {
+        const req = app.state.linking.incomingRequests.find((entry) => entry.id === requestId);
+        if (!req) {
+          return;
+        }
+
+        upsertLinkedDevice({
+          id: req.fromClientId,
+          alias: req.fromAlias,
+          status: "linked",
+          lastSeenAt: nowIso()
+        });
+
+        app.state.linking.incomingRequests = app.state.linking.incomingRequests.filter((entry) => entry.id !== requestId);
+        queueSignal("link-accept", {
+          requestId,
+          fromClientId: app.state.client.id,
+          fromAlias: app.state.client.nickname || app.state.client.id,
+          toClientId: req.fromClientId,
+          approvedAt: nowIso()
+        });
+
+        persistState();
+        refreshClientSelects();
+        renderLinkingPanels();
+        attemptGitHubSync("link-accept");
+        toast("success", "Link request approved.");
+      }
+
+      function renderLinkingPanels() {
+        app.nodes.remoteLocalClientIdInput.value = app.state.client.id || "";
+
+        if (!app.state.linking.incomingRequests.length) {
+          app.nodes.incomingRequestsList.innerHTML = "<p class='subtle'>No incoming link requests.</p>";
+        } else {
+          app.nodes.incomingRequestsList.innerHTML = app.state.linking.incomingRequests.map((req) => `
+            <article class="item-card">
+              <div><strong>${escapeHtml(req.fromAlias || req.fromClientId)}</strong></div>
+              <div class="meta">from: ${escapeHtml(req.fromClientId)}</div>
+              <div class="meta">at: ${escapeHtml(new Date(req.createdAt).toLocaleString())}</div>
+              <div class="button-row">
+                <button class="secondary" data-action="approve-link" data-id="${req.id}">Approve link</button>
+              </div>
+            </article>
+          `).join("");
+        }
+
+        if (!app.state.linking.linkedDevices.length) {
+          app.nodes.linkedDevicesList.innerHTML = "<p class='subtle'>No linked devices yet.</p>";
+        } else {
+          app.nodes.linkedDevicesList.innerHTML = app.state.linking.linkedDevices.map((device) => `
+            <article class="item-card">
+              <div><strong>${escapeHtml(device.alias || device.id)}</strong></div>
+              <div class="meta">id: ${escapeHtml(device.id)}</div>
+              <div class="meta">status: ${escapeHtml(device.status || "visible")}</div>
+              <div class="meta">last seen: ${escapeHtml(new Date(device.lastSeenAt).toLocaleString())}</div>
+            </article>
+          `).join("");
+        }
+
+        const remoteOptions = ["<option value=''>Select linked device</option>"];
+        app.state.linking.linkedDevices.forEach((device) => {
+          if ((device.status || "").toLowerCase() === "linked") {
+            remoteOptions.push(`<option value="${escapeHtml(device.id)}">${escapeHtml(device.alias || device.id)}</option>`);
+          }
+        });
+        app.nodes.remoteSendTargetSelect.innerHTML = remoteOptions.join("");
+      }
+
+      function processLinkSignal(item) {
+        if (!item.signalKind || !item.signalData) {
+          return false;
+        }
+
+        const data = item.signalData;
+        if (item.signalKind === "presence") {
+          if (data.clientId && data.clientId !== app.state.client.id) {
+            upsertLinkedDevice({
+              id: data.clientId,
+              alias: data.alias || data.clientId,
+              status: "visible",
+              lastSeenAt: data.lastSeenAt || nowIso()
+            });
+          }
+          return true;
+        }
+
+        if (item.signalKind === "link-request") {
+          if (data.toClientId === app.state.client.id && data.fromClientId !== app.state.client.id) {
+            const exists = app.state.linking.incomingRequests.some((entry) => entry.id === data.id);
+            if (!exists) {
+              app.state.linking.incomingRequests.unshift({
+                id: data.id,
+                fromClientId: data.fromClientId,
+                fromAlias: data.fromAlias,
+                toClientId: data.toClientId,
+                createdAt: data.createdAt || nowIso(),
+                status: "pending"
+              });
+              log("info", "Incoming link request received.", { from: data.fromClientId });
+            }
+          }
+          return true;
+        }
+
+        if (item.signalKind === "link-accept") {
+          if (data.toClientId === app.state.client.id && data.fromClientId !== app.state.client.id) {
+            upsertLinkedDevice({
+              id: data.fromClientId,
+              alias: data.fromAlias,
+              status: "linked",
+              lastSeenAt: data.approvedAt || nowIso()
+            });
+            app.state.linking.outgoingRequests = app.state.linking.outgoingRequests.map((req) => {
+              if (req.id === data.requestId) {
+                return { ...req, status: "approved" };
+              }
+              return req;
+            });
+            log("success", "Link request approved by peer.", { peer: data.fromClientId });
+          }
+          return true;
+        }
+
+        return false;
       }
 
       function updateStatusBadges() {
@@ -806,6 +2416,7 @@
         app.nodes.syncModeBadge.textContent = app.state.runtime.syncMode;
         app.nodes.capabilityBadge.textContent = app.state.runtime.capabilityLabel;
         app.nodes.syncBadge.textContent = tsLabel(app.state.runtime.lastSyncAt);
+        app.nodes.modeBadge.textContent = app.state.settings.complexityLevel || "medium";
       }
 
       function detectCapabilities() {
@@ -1157,6 +2768,14 @@
           if (!current || current.status !== "scheduled") {
             return;
           }
+          const driftMs = Date.now() - Number(current.fireAt || Date.now());
+          if (driftMs > 15000) {
+            log("warn", "Scheduled task executed late. Possible background throttling or suspended tab.", {
+              id: itemId,
+              driftMs,
+              fix: "Keep app active for local timers or use relay push backend for critical timing."
+            });
+          }
           const ok = await notifyNow(current.payload, "scheduled");
           if (ok && current.repeat && current.repeat.enabled && current.repeat.remaining > 0) {
             current.repeat.remaining -= 1;
@@ -1378,7 +2997,13 @@
       }
 
       function refreshClientSelects() {
-        const options = [`<option value="all">All clients</option>`, `<option value="${escapeHtml(app.state.client.id)}">${escapeHtml(app.state.client.id)} (this device)</option>`];
+        const options = [
+          `<option value="all">All clients</option>`,
+          `<option value="${escapeHtml(app.state.client.id)}">${escapeHtml(app.state.client.id)} (this device)</option>`
+        ];
+        app.state.linking.linkedDevices.forEach((device) => {
+          options.push(`<option value="${escapeHtml(device.id)}">${escapeHtml((device.alias || device.id) + " (linked)")}</option>`);
+        });
         app.nodes.clientTargetInput.innerHTML = options.join("");
         app.nodes.queueClientFilter.innerHTML = options.join("");
         if (app.state.draft.clientTarget !== "all") {
@@ -1470,6 +3095,11 @@
         const now = Date.now();
         const candidates = app.state.queue.filter((item) => (item.status === "queued" || item.status === "scheduled") && item.availableAt <= now);
         for (const item of candidates) {
+          if (processLinkSignal(item)) {
+            item.status = "sent";
+            app.state.processedQueueIds.push(item.id);
+            continue;
+          }
           const ok = await notifyNow(item.payload, "queue");
           item.status = ok ? "sent" : "failed";
           if (ok) {
@@ -1477,6 +3107,8 @@
           }
         }
         persistState();
+        refreshClientSelects();
+        renderLinkingPanels();
         renderQueueList();
       }
 
@@ -1666,6 +3298,169 @@
       }
 
       function wireEvents() {
+        app.nodes.modeToolbar.addEventListener("click", (event) => {
+          const target = event.target;
+          if (!(target instanceof HTMLElement)) {
+            return;
+          }
+          const mode = target.dataset.mode;
+          if (!mode) {
+            return;
+          }
+          applyComplexityMode(mode);
+          toast("info", `Switched to ${mode} mode.`);
+          log("info", "Complexity mode changed.", { mode });
+        });
+
+        app.nodes.acceptOnboardingBtn.addEventListener("click", acceptOnboarding);
+        app.nodes.declineOnboardingBtn.addEventListener("click", declineOnboarding);
+
+        app.nodes.easyRequestPermBtn.addEventListener("click", requestPermission);
+        app.nodes.easyRegisterSwBtn.addEventListener("click", registerServiceWorker);
+        app.nodes.easyQuickSendBtn.addEventListener("click", async () => {
+          const payload = {
+            id: uid("notif"),
+            title: "Easy mode quick test",
+            body: "This is a quick notification from easy flow.",
+            targetUrl: "/",
+            tag: "easy-quick",
+            actions: [],
+            clientTarget: "all"
+          };
+          await notifyNow(payload, "easy-quick");
+        });
+        app.nodes.easyOpenLinkingBtn.addEventListener("click", () => navigateTo("remote"));
+
+        app.nodes.runProScriptBtn.addEventListener("click", runProfessionalScript);
+        app.nodes.proSendTestScriptBtn.addEventListener("click", insertProSendTestScript);
+
+        app.nodes.helpToggleBtn.addEventListener("click", () => {
+          const isHidden = app.nodes.helpCenterSection.classList.contains("hidden");
+          showPanel(isHidden ? "help" : "");
+        });
+
+        app.nodes.hamburgerBtn.addEventListener("click", () => {
+          const open = app.nodes.hamburgerMenu.classList.toggle("hidden");
+          app.nodes.hamburgerBtn.setAttribute("aria-expanded", open ? "false" : "true");
+        });
+
+        app.nodes.hamburgerMenu.addEventListener("click", (event) => {
+          const target = event.target;
+          if (!(target instanceof HTMLElement)) {
+            return;
+          }
+          const action = target.dataset.menuAction;
+          if (action === "open-help") {
+            showPanel("help");
+          }
+          if (action === "open-settings") {
+            showPanel("settings");
+          }
+          if (action === "open-remote") {
+            showPanel("remote");
+          }
+          if (action === "open-diagnostics") {
+            showPanel("diagnostics");
+            runDiagnosticsScan();
+          }
+          if (action === "open-navigator") {
+            showPanel("navigator");
+          }
+          if (action === "toggle-explanations") {
+            setExplanationVisibility(!app.state.settings.showExplanations);
+            toast("info", app.state.settings.showExplanations ? "Explanations are visible." : "Explanations are hidden.");
+          }
+          app.nodes.hamburgerMenu.classList.add("hidden");
+          app.nodes.hamburgerBtn.setAttribute("aria-expanded", "false");
+        });
+
+        document.addEventListener("click", (event) => {
+          const target = event.target;
+          if (!(target instanceof HTMLElement)) {
+            return;
+          }
+          if (!app.nodes.hamburgerMenu.contains(target) && target !== app.nodes.hamburgerBtn) {
+            app.nodes.hamburgerMenu.classList.add("hidden");
+            app.nodes.hamburgerBtn.setAttribute("aria-expanded", "false");
+          }
+          if (target.dataset.sectionHelp) {
+            const sectionId = target.dataset.sectionHelp;
+            showPanel("help");
+            const text = SECTION_HELP[sectionId] || "This section controls part of the notification workflow.";
+            app.nodes.helpContextNote.textContent = text;
+          }
+          if (target.dataset.navTarget) {
+            navigateTo(target.dataset.navTarget);
+          }
+          if (target.dataset.openWindow) {
+            openPanelInNewWindow(target.dataset.openWindow);
+          }
+        });
+
+        app.nodes.saveSettingsBtn.addEventListener("click", applySettingsFromUI);
+        app.nodes.subscribePushBtn.addEventListener("click", subscribeForRealPush);
+        app.nodes.registerRelayBtn.addEventListener("click", registerDeviceWithRelay);
+
+        app.nodes.generateRemoteLinkBtn.addEventListener("click", () => {
+          const link = generateRemoteShareLink();
+          if (link) {
+            toast("success", "Remote access link generated.");
+          }
+        });
+
+        app.nodes.copyRemoteLinkBtn.addEventListener("click", async () => {
+          const link = app.nodes.remoteShareLinkOutput.value || generateRemoteShareLink();
+          if (!link) {
+            return;
+          }
+          try {
+            await navigator.clipboard.writeText(link);
+            toast("success", "Remote link copied.");
+          } catch (error) {
+            toast("error", "Clipboard copy failed. You can copy manually.");
+          }
+        });
+
+        app.nodes.openRemoteLinkBtn.addEventListener("click", () => {
+          const link = app.nodes.remoteShareLinkOutput.value || generateRemoteShareLink();
+          if (!link) {
+            return;
+          }
+          window.open(link, "_blank", "noopener");
+        });
+        app.nodes.generateDeviceQrBtn.addEventListener("click", () => {
+          generateDeviceQrRoute();
+          toast("success", "QR route generated for device linking.");
+        });
+        app.nodes.copyDeviceRouteBtn.addEventListener("click", async () => {
+          const route = app.nodes.deviceLinkRouteOutput.value || generateDeviceQrRoute();
+          try {
+            await navigator.clipboard.writeText(route);
+            toast("success", "QR route copied.");
+          } catch (_error) {
+            toast("warn", "Unable to copy route. Copy manually from the field.");
+          }
+        });
+        app.nodes.sendRemoteNowBtn.addEventListener("click", sendRemoteNowFromUI);
+        app.nodes.sendResponseBtn.addEventListener("click", sendResponseMessage);
+        app.nodes.runDiagnosticsBtn.addEventListener("click", runDiagnosticsScan);
+        app.nodes.openLogsFromDiagnosticsBtn.addEventListener("click", () => navigateTo("logSection"));
+
+        app.nodes.requestShareLinkBtn.addEventListener("click", requestLinkPermission);
+        app.nodes.announcePresenceBtn.addEventListener("click", announcePresence);
+
+        app.nodes.incomingRequestsList.addEventListener("click", (event) => {
+          const target = event.target;
+          if (!(target instanceof HTMLElement)) {
+            return;
+          }
+          const action = target.dataset.action;
+          const id = target.dataset.id;
+          if (action === "approve-link" && id) {
+            approveIncomingRequest(id);
+          }
+        });
+
         qs("requestPermBtn").addEventListener("click", requestPermission);
         qs("registerSwBtn").addEventListener("click", registerServiceWorker);
         qs("sendNowBtn").addEventListener("click", sendInstantFromDraft);
@@ -1787,6 +3582,12 @@
             }
             if (data.type === "NOTIFICATION_CLICKED") {
               log("info", "Notification click captured by service worker.", data.payload || {});
+              if (data.payload && data.payload.action === "respond") {
+                showPanel("remote");
+                app.nodes.responseToIdInput.value = data.payload.id || "";
+                app.nodes.responseToClientInput.value = data.payload.responseTargetClientId || "";
+                app.nodes.responseTextInput.focus();
+              }
             }
             if (data.type === "NOTIFICATION_DISMISSED") {
               log("warn", "Notification dismissed.", data.payload || {});
@@ -1801,6 +3602,20 @@
         ].forEach((node) => {
           node.addEventListener("change", renderQueueList);
         });
+
+        window.addEventListener("offline", () => {
+          log("error", "Network connection lost.", {
+            fix: "Reconnect internet and retry queue/relay sync."
+          });
+          toast("error", "Offline: sync and remote operations may fail.");
+        });
+
+        window.addEventListener("online", () => {
+          log("success", "Network connection restored.");
+          toast("success", "Online again. You can sync now.");
+        });
+
+        attachHoverHelp();
       }
 
       function startCountdownRerender() {
@@ -1823,6 +3638,11 @@
 
         refreshClientSelects();
         fillComposerFromState();
+        renderHelpCenter();
+        setupSectionDots();
+        hydrateSettingsUI();
+        renderLinkingPanels();
+        generateDeviceQrRoute();
         renderClientProfile();
         renderScheduledList();
         renderQueueList();
@@ -1842,6 +3662,61 @@
 
         // Try to process queue items that were eligible while the app was closed.
         await processQueueEligibility();
+
+        const routeUrl = new URL(window.location.href);
+        if (routeUrl.searchParams.get("help") === "1") {
+          showPanel("help");
+        }
+        if (routeUrl.searchParams.get("remote") === "1") {
+          showPanel("remote");
+          if (routeUrl.searchParams.get("topic")) {
+            app.nodes.remoteTopicInput.value = routeUrl.searchParams.get("topic") || "";
+          }
+          if (routeUrl.searchParams.get("gateway")) {
+            app.nodes.remoteHubBaseInput.value = routeUrl.searchParams.get("gateway") || "";
+          }
+          generateRemoteShareLink();
+        }
+
+        if (routeUrl.searchParams.get("settings") === "1") {
+          showPanel("settings");
+        }
+
+        if (routeUrl.searchParams.get("diagnostics") === "1") {
+          showPanel("diagnostics");
+          runDiagnosticsScan();
+        }
+
+        if (routeUrl.searchParams.get("navigator") === "1") {
+          showPanel("navigator");
+        }
+
+        const routeMode = routeUrl.searchParams.get("mode");
+        if (routeMode) {
+          applyComplexityMode(routeMode);
+        }
+
+        if (routeUrl.searchParams.get("replyToNotificationId")) {
+          showPanel("remote");
+          app.nodes.responseToIdInput.value = routeUrl.searchParams.get("replyToNotificationId") || "";
+          app.nodes.responseToClientInput.value = routeUrl.searchParams.get("responseTargetClientId") || "";
+        }
+
+        const connectPeer = routeUrl.searchParams.get("connectPeer");
+        if (connectPeer) {
+          showPanel("remote");
+          app.nodes.remotePeerIdInput.value = connectPeer;
+          const peerAlias = routeUrl.searchParams.get("connectAlias") || "";
+          if (peerAlias) {
+            app.nodes.remotePeerAliasInput.value = peerAlias;
+          }
+        }
+
+        runDiagnosticsScan();
+
+        if (!app.state.settings.onboardingAccepted) {
+          setOnboardingModalVisibility(true);
+        }
 
         log("info", "Application startup complete.");
       }
