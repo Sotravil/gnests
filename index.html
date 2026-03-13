@@ -1,0 +1,4571 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#114b5f">
+  <title>Notification Lab</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f4f8f6;
+      --panel: #ffffff;
+      --ink: #13232f;
+      --muted: #4f6272;
+      --accent: #114b5f;
+      --accent-2: #1a936f;
+      --warn: #c17700;
+      --danger: #b02a37;
+      --line: #d6e1e6;
+      --shadow: 0 16px 34px rgba(17, 75, 95, 0.12);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Space Grotesk", "Trebuchet MS", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 12%, rgba(26, 147, 111, 0.25), transparent 28%),
+        radial-gradient(circle at 85% 5%, rgba(17, 75, 95, 0.15), transparent 35%),
+        linear-gradient(180deg, #eef6f4 0%, #f8fbfa 50%, #edf4f8 100%);
+      line-height: 1.4;
+    }
+
+    .app-shell {
+      width: min(1100px, 100% - 1.2rem);
+      margin: 0 auto;
+      padding: 0.8rem 0 5rem;
+    }
+
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      padding: 0.8rem;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: var(--radius);
+      background: rgba(244, 248, 246, 0.85);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      margin-bottom: 0.8rem;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      letter-spacing: 0.02em;
+    }
+
+    h1 {
+      font-size: clamp(1.2rem, 2.8vw, 1.8rem);
+      margin-bottom: 0.55rem;
+    }
+
+    h2 {
+      font-size: 1rem;
+      margin-bottom: 0.65rem;
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 0.45rem;
+    }
+
+    .mode-toolbar {
+      margin-top: 0.65rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.4rem;
+    }
+
+    .mode-btn {
+      background: #e8f2f6;
+      color: #12384a;
+      border: 1px solid var(--line);
+      font-weight: 600;
+    }
+
+    .mode-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .mode-note {
+      margin-top: 0.4rem;
+      font-size: 0.8rem;
+      color: #234959;
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      padding: 0.35rem 0.65rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.4rem;
+    }
+
+    .chip strong {
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .chip-link {
+      border: 0;
+      background: transparent;
+      color: var(--ink);
+      font-weight: 700;
+      font-size: 0.78rem;
+      padding: 0;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .quick-actions {
+      position: sticky;
+      top: 104px;
+      z-index: 18;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.45rem;
+      margin-bottom: 0.8rem;
+      padding: 0.7rem;
+      border: 1px solid rgba(17, 75, 95, 0.15);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 8px 18px rgba(17, 75, 95, 0.08);
+    }
+
+    .section-card {
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      padding: 0.85rem;
+      margin-bottom: 0.8rem;
+      animation: rise-in 360ms ease both;
+    }
+
+    @keyframes rise-in {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      margin-bottom: 0.7rem;
+    }
+
+    .subtle {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .grid-2,
+    .grid-3 {
+      display: grid;
+      gap: 0.55rem;
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+
+    label {
+      display: grid;
+      gap: 0.25rem;
+      font-size: 0.83rem;
+      color: var(--muted);
+    }
+
+    input,
+    textarea,
+    select,
+    button {
+      font: inherit;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--ink);
+      padding: 0.56rem;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 78px;
+    }
+
+    .error-note {
+      min-height: 1.1rem;
+      color: var(--danger);
+      font-size: 0.72rem;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-top: 0.55rem;
+    }
+
+    button {
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 0.56rem 0.72rem;
+      cursor: pointer;
+      color: #fff;
+      background: var(--accent);
+      transition: transform 100ms ease, opacity 100ms ease;
+      touch-action: manipulation;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button.secondary {
+      color: var(--ink);
+      background: #e7eef2;
+      border-color: var(--line);
+    }
+
+    button.success {
+      background: var(--accent-2);
+    }
+
+    button.warn {
+      background: var(--warn);
+    }
+
+    button.danger {
+      background: var(--danger);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    details {
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      padding: 0.45rem;
+      margin-top: 0.6rem;
+    }
+
+    summary {
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .list {
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    .item-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fbfdfd;
+      padding: 0.62rem;
+      display: grid;
+      gap: 0.4rem;
+    }
+
+    .item-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .meta {
+      font-family: "IBM Plex Mono", Consolas, monospace;
+      font-size: 0.73rem;
+      color: var(--muted);
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+    }
+
+    .pill {
+      border-radius: 999px;
+      padding: 0.18rem 0.48rem;
+      background: #d9e8ef;
+      color: #13384d;
+      font-size: 0.72rem;
+    }
+
+    .log-wrap {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #f9fcfd;
+      max-height: 260px;
+      overflow: auto;
+      padding: 0.35rem;
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .log-entry {
+      border-left: 4px solid #8aa4b2;
+      padding: 0.4rem 0.5rem;
+      background: #fff;
+      border-radius: 8px;
+      font-size: 0.8rem;
+    }
+
+    .log-entry.info {
+      border-left-color: #528aa8;
+    }
+
+    .log-entry.success {
+      border-left-color: #1a936f;
+    }
+
+    .log-entry.warn {
+      border-left-color: #c17700;
+    }
+
+    .log-entry.error {
+      border-left-color: #b02a37;
+    }
+
+    .toast-stack {
+      position: fixed;
+      left: 0.75rem;
+      right: 0.75rem;
+      bottom: 0.75rem;
+      display: grid;
+      gap: 0.45rem;
+      z-index: 40;
+      pointer-events: none;
+    }
+
+    .toast {
+      pointer-events: auto;
+      border-radius: 12px;
+      padding: 0.6rem 0.72rem;
+      color: #fff;
+      font-size: 0.82rem;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+      animation: toast-in 220ms ease both;
+    }
+
+    .toast.info {
+      background: #315c7a;
+    }
+
+    .toast.success {
+      background: #1f8556;
+    }
+
+    .toast.warn {
+      background: #9a6a12;
+    }
+
+    .toast.error {
+      background: #8f2330;
+    }
+
+    .toast.clickable {
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    @keyframes toast-in {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .footer-note {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .header-tools {
+      margin-top: 0.6rem;
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.4rem;
+      position: relative;
+    }
+
+    .mini-btn {
+      padding: 0.35rem 0.65rem;
+      font-size: 0.76rem;
+    }
+
+    .menu-dropdown {
+      position: absolute;
+      right: 0;
+      top: 2.1rem;
+      min-width: 190px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+      padding: 0.3rem;
+      z-index: 60;
+      display: grid;
+      gap: 0.25rem;
+    }
+
+    .menu-dropdown button {
+      width: 100%;
+      text-align: left;
+      background: #f2f7f9;
+      color: var(--ink);
+      border-color: var(--line);
+    }
+
+    .kebab-btn {
+      border-radius: 8px;
+      line-height: 1;
+      min-width: 2rem;
+      padding: 0.38rem 0.45rem;
+      font-size: 1.05rem;
+      color: var(--ink);
+      background: #eef4f7;
+      border-color: var(--line);
+    }
+
+    .hover-help {
+      position: fixed;
+      max-width: 290px;
+      background: #12384a;
+      color: #f5f9fb;
+      border-radius: 10px;
+      padding: 0.55rem;
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.28);
+      z-index: 70;
+      font-size: 0.75rem;
+      pointer-events: none;
+    }
+
+    .hover-help strong {
+      display: block;
+      margin-bottom: 0.2rem;
+      font-size: 0.78rem;
+    }
+
+    .help-list {
+      display: grid;
+      gap: 0.4rem;
+    }
+
+    .help-item {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0.45rem;
+      background: #f8fcfd;
+      font-size: 0.78rem;
+    }
+
+    .inline-note {
+      margin: 0;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .section-purpose {
+      margin: 0 0 0.6rem;
+      padding: 0.5rem 0.6rem;
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      background: #f5fafb;
+      font-size: 0.78rem;
+      color: #244555;
+    }
+
+    .easy-block-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 0.5rem;
+    }
+
+    .easy-block {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0.6rem;
+      background: linear-gradient(180deg, #f9fdff 0%, #eef7fb 100%);
+      box-shadow: 0 10px 18px rgba(17, 75, 95, 0.08);
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    .easy-block h3 {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      background: rgba(8, 20, 27, 0.65);
+      display: grid;
+      place-items: center;
+      padding: 0.9rem;
+    }
+
+    .modal-card {
+      width: min(700px, 100%);
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 30px rgba(0, 0, 0, 0.25);
+      padding: 0.9rem;
+      display: grid;
+      gap: 0.6rem;
+    }
+
+    .consent-box {
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      padding: 0.6rem;
+      background: #f8fcfd;
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    .code-area {
+      width: 100%;
+      min-height: 170px;
+      font-family: "IBM Plex Mono", Consolas, monospace;
+      font-size: 0.77rem;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #0f1a22;
+      color: #dcf2ff;
+      padding: 0.55rem;
+    }
+
+    .chain-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.6rem;
+    }
+
+    .qr-wrap {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 0.6rem;
+      align-items: center;
+      margin-top: 0.6rem;
+      padding: 0.55rem;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #f8fcfd;
+    }
+
+    .qr-wrap img {
+      width: 128px;
+      height: 128px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #fff;
+      object-fit: contain;
+    }
+
+    body.hide-explanations .subtle,
+    body.hide-explanations .inline-note,
+    body.hide-explanations .section-purpose {
+      display: none !important;
+    }
+
+    body.mode-professional .help-only,
+    body.mode-professional #helpCenterSection,
+    body.mode-professional .kebab-btn {
+      display: none !important;
+    }
+
+    body.mode-easy .advanced-only {
+      display: none !important;
+    }
+
+    body.mode-easy {
+      --radius: 24px;
+    }
+
+    body.mode-easy .app-shell {
+      width: min(1240px, 100% - 0.5rem);
+    }
+
+    body.mode-easy .quick-actions {
+      grid-template-columns: repeat(2, minmax(160px, 1fr));
+      gap: 0.7rem;
+      padding: 1rem;
+    }
+
+    body.mode-easy button {
+      font-size: 1rem;
+      padding: 0.8rem 1rem;
+      border-radius: 14px;
+      font-weight: 700;
+    }
+
+    body.mode-easy .section-card {
+      border-width: 2px;
+      box-shadow: 0 18px 32px rgba(26, 147, 111, 0.16);
+      padding: 1rem;
+    }
+
+    body.mode-easy .easy-block {
+      background: linear-gradient(160deg, #ebfaff 0%, #d8f4ff 45%, #dfffe8 100%);
+      border-width: 2px;
+    }
+
+    body.mode-medium .easy-block {
+      background: linear-gradient(180deg, #f9fdff 0%, #eef7fb 100%);
+    }
+
+    body.mode-hard .section-card {
+      border-style: solid;
+      border-color: #9cb8c8;
+      box-shadow: 0 14px 26px rgba(19, 35, 47, 0.15);
+    }
+
+    body.mode-hard .quick-actions {
+      background: #eef4f8;
+      border-color: #9cb8c8;
+    }
+
+    body.mode-professional {
+      font-family: "IBM Plex Mono", Consolas, monospace;
+      background: linear-gradient(180deg, #f2f5f7 0%, #f8fafb 100%);
+    }
+
+    body.mode-professional .section-card {
+      border-radius: 10px;
+      box-shadow: 0 10px 16px rgba(0, 0, 0, 0.08);
+      border-color: #c8d2d8;
+    }
+
+    body.mode-professional button {
+      border-radius: 8px;
+      font-size: 0.82rem;
+      padding: 0.48rem 0.65rem;
+    }
+
+    .pro-output {
+      margin-top: 0.5rem;
+      max-height: 230px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #0f1820;
+      color: #dcf2ff;
+      padding: 0.45rem;
+      display: grid;
+      gap: 0.32rem;
+    }
+
+    .pro-line {
+      font-family: "IBM Plex Mono", Consolas, monospace;
+      font-size: 0.74rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      border-left: 3px solid #4a6a7e;
+      padding-left: 0.45rem;
+    }
+
+    .pro-line.success {
+      border-left-color: #1a936f;
+    }
+
+    .pro-line.error {
+      border-left-color: #b02a37;
+    }
+
+    .pro-line.command {
+      border-left-color: #c17700;
+    }
+
+    .pro-grid {
+      margin-top: 0.6rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 0.55rem;
+    }
+
+    .pro-panel {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #f9fcff;
+      padding: 0.55rem;
+      display: grid;
+      gap: 0.4rem;
+    }
+
+    .pro-panel h3 {
+      font-size: 0.86rem;
+      margin: 0;
+    }
+
+    .pro-inspector {
+      min-height: 120px;
+      max-height: 220px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #0f1820;
+      color: #dcf2ff;
+      font-family: "IBM Plex Mono", Consolas, monospace;
+      font-size: 0.72rem;
+      padding: 0.45rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .snippet-box {
+      width: 100%;
+      min-height: 100px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #0f1820;
+      color: #dcf2ff;
+      font-family: "IBM Plex Mono", Consolas, monospace;
+      font-size: 0.72rem;
+      padding: 0.45rem;
+      resize: vertical;
+    }
+
+    @media (min-width: 860px) {
+      .quick-actions {
+        top: 86px;
+      }
+
+      .toast-stack {
+        left: auto;
+        width: 320px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header">
+      <h1>Notification Lab</h1>
+      <div class="status-grid">
+        <div class="chip">Environment <strong id="envBadge">static-only</strong></div>
+        <div class="chip">Service worker <strong id="swBadge">unknown</strong></div>
+        <div class="chip">Permission <strong id="permBadge">default</strong></div>
+        <div class="chip">Sync mode <strong id="syncModeBadge">local</strong></div>
+        <div class="chip">Capability <strong id="capabilityBadge">checking</strong></div>
+        <div class="chip">Last sync <strong id="syncBadge">never</strong></div>
+        <div class="chip">Mode <strong id="modeBadge">medium</strong></div>
+        <div class="chip">App <button id="versionBadgeBtn" class="chip-link" type="button">v0.8.0</button></div>
+        <div class="chip">Latest <strong id="latestVersionBadge">checking</strong></div>
+        <div class="chip">Launch <strong id="launchBadge">checking</strong></div>
+      </div>
+      <div class="mode-toolbar" id="modeToolbar">
+        <button class="mode-btn" data-mode="easy">Easy</button>
+        <button class="mode-btn" data-mode="medium">Medium</button>
+        <button class="mode-btn" data-mode="hard">Hard</button>
+        <button class="mode-btn" data-mode="professional">Professional</button>
+      </div>
+      <p class="mode-note" id="modeNote">Medium mode balances clarity and control.</p>
+      <div class="header-tools">
+        <button id="helpToggleBtn" class="secondary mini-btn help-only">Help</button>
+        <button id="hamburgerBtn" class="secondary mini-btn" aria-expanded="false" aria-controls="hamburgerMenu">Menu</button>
+        <div id="hamburgerMenu" class="menu-dropdown hidden">
+          <button data-menu-action="open-help">Help center</button>
+          <button data-menu-action="open-settings">Settings</button>
+          <button data-menu-action="open-remote">Remote access</button>
+          <button data-menu-action="open-diagnostics">Diagnostics</button>
+          <button data-menu-action="open-navigator">Section navigator</button>
+          <button id="toggleExplanationsMenuBtn" data-menu-action="toggle-explanations">Hide explanations</button>
+        </div>
+      </div>
+    </header>
+
+    <section class="quick-actions" aria-label="Quick actions">
+      <button id="requestPermBtn">Request permission</button>
+      <button id="registerSwBtn" class="secondary">Register service worker</button>
+      <button id="sendNowBtn" class="success">Send test now</button>
+      <button id="refreshQueueBtn" class="secondary">Refresh queue</button>
+      <button id="syncGithubBtn" class="secondary">Sync now</button>
+      <button id="startPollingBtn" class="warn">Start polling</button>
+      <button id="stopPollingBtn" class="danger">Stop polling</button>
+    </section>
+
+    <section class="section-card hidden" id="easyWorkbenchSection">
+      <div class="section-head">
+        <h2>Easy flow workbench</h2>
+        <span class="subtle">Block-style guided actions for quick success</span>
+      </div>
+      <p class="section-purpose">Purpose: one-tap blocks for setup, quick send, and device linking without deep configuration.</p>
+      <div class="easy-block-grid">
+        <article class="easy-block">
+          <h3>1. Allow notifications</h3>
+          <button id="easyRequestPermBtn">Allow notifications</button>
+          <p class="inline-note">Mandatory before any notification is visible.</p>
+        </article>
+        <article class="easy-block">
+          <h3>2. Enable background helper</h3>
+          <button id="easyRegisterSwBtn" class="secondary">Enable worker</button>
+          <p class="inline-note">Registers service worker for click routing and cache support.</p>
+        </article>
+        <article class="easy-block">
+          <h3>3. Send a fast test</h3>
+          <button id="easyQuickSendBtn" class="success">Send quick test</button>
+          <p class="inline-note">Uses a safe default message and route.</p>
+        </article>
+        <article class="easy-block">
+          <h3>4. Link another device</h3>
+          <button id="easyOpenLinkingBtn" class="secondary">Open linking section</button>
+          <p class="inline-note">Share QR and request link permission quickly.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section-card hidden" id="helpCenterSection">
+      <div class="section-head">
+        <h2>Help center</h2>
+        <span class="subtle">Input and button behavior explained in one place</span>
+      </div>
+      <p class="section-purpose">Purpose: this section explains every control and section role so operators can debug the flow without guessing what each button does.</p>
+      <p class="inline-note" id="helpContextNote">Hover or focus inputs/buttons to see instant tooltips. Use the section dots for quick section help.</p>
+      <div class="help-list" id="helpList"></div>
+      <div class="chain-nav">
+        <button class="secondary" data-nav-target="home">Back to workspace</button>
+        <button class="secondary" data-open-window="help">Open help in new window</button>
+        <button class="secondary" data-nav-target="navigator">Open section navigator</button>
+      </div>
+    </section>
+
+    <section class="section-card hidden" id="settingsSection">
+      <div class="section-head">
+        <h2>Settings</h2>
+        <span class="subtle">Core behavior toggles and sync configuration</span>
+      </div>
+      <p class="section-purpose">Purpose: configure scheduling, polling, sync, and real relay options that control whether background notifications can be delivered and retried.</p>
+      <div class="grid-3">
+        <label>Auto register service worker
+          <select id="settingAutoSwInput">
+            <option value="true">true</option>
+            <option value="false">false</option>
+          </select>
+        </label>
+        <label>Polling interval (ms)
+          <input id="settingPollingMsInput" type="number" min="5000" step="1000" value="60000">
+        </label>
+        <label>Enable GitHub sync
+          <select id="settingGithubEnabledInput">
+            <option value="false">false</option>
+            <option value="true">true</option>
+          </select>
+        </label>
+      </div>
+      <div class="grid-3">
+        <label>Enable push relay (real remote)
+          <select id="settingRelayEnabledInput">
+            <option value="false">false</option>
+            <option value="true">true</option>
+          </select>
+        </label>
+        <label>Relay base URL
+          <input id="settingRelayBaseUrlInput" placeholder="https://your-relay.example.com">
+        </label>
+        <label>VAPID public key
+          <input id="settingRelayVapidInput" placeholder="BEl...">
+        </label>
+      </div>
+      <label>Relay API key (optional)
+        <input id="settingRelayApiKeyInput" type="password" placeholder="relay_key_...">
+      </label>
+      <div class="button-row">
+        <button id="subscribePushBtn" class="secondary">Subscribe for real push</button>
+        <button id="registerRelayBtn" class="secondary">Register device with relay</button>
+      </div>
+      <div class="grid-2">
+        <label>GitHub owner
+          <input id="settingGithubOwnerInput" placeholder="Sotravil">
+        </label>
+        <label>GitHub repo
+          <input id="settingGithubRepoInput" placeholder="gnests">
+        </label>
+      </div>
+      <div class="grid-2">
+        <label>Sync file path
+          <input id="settingGithubPathInput" placeholder="queue.json">
+        </label>
+        <label>Git branch
+          <input id="settingGithubBranchInput" placeholder="main">
+        </label>
+      </div>
+      <label>GitHub token (dev use only)
+        <input id="settingGithubTokenInput" type="password" placeholder="ghp_...">
+      </label>
+      <div class="button-row">
+        <button id="saveSettingsBtn" class="secondary">Save settings</button>
+      </div>
+      <div class="chain-nav">
+        <button class="secondary" data-nav-target="home">Back to workspace</button>
+        <button class="secondary" data-open-window="settings">Open settings in new window</button>
+        <button class="secondary" data-nav-target="diagnostics">Run diagnostics section</button>
+      </div>
+    </section>
+
+    <section class="section-card hidden" id="remoteAccessSection">
+      <div class="section-head">
+        <h2>Remote access routing</h2>
+        <span class="subtle">Share route links for opt-in remote notification flows</span>
+      </div>
+      <p class="section-purpose">Purpose: link devices, generate route links, and send real relay-backed remote notifications with optional response routing.</p>
+      <p class="inline-note">Static-only mode can share access links and metadata, but real closed-browser remote push still requires a sender backend.</p>
+      <div class="grid-3">
+        <label>Your device ID
+          <input id="remoteLocalClientIdInput" readonly>
+        </label>
+        <label>Peer device ID
+          <input id="remotePeerIdInput" placeholder="client-...">
+        </label>
+        <label>Peer nickname (optional)
+          <input id="remotePeerAliasInput" placeholder="Teammate phone">
+        </label>
+      </div>
+      <div class="button-row">
+        <button id="requestShareLinkBtn" class="secondary">Request link permission</button>
+        <button id="announcePresenceBtn" class="secondary">Announce this device</button>
+      </div>
+      <div class="grid-2">
+        <label>Shared gateway base URL
+          <input id="remoteHubBaseInput" placeholder="https://example.com/notify-hub">
+        </label>
+        <label>Channel / topic
+          <input id="remoteTopicInput" placeholder="team-alpha">
+        </label>
+      </div>
+      <label>Generated invite link
+        <input id="remoteShareLinkOutput" readonly>
+      </label>
+      <div class="button-row">
+        <button id="generateRemoteLinkBtn" class="secondary">Generate link</button>
+        <button id="copyRemoteLinkBtn" class="secondary">Copy link</button>
+        <button id="openRemoteLinkBtn" class="secondary">Open link</button>
+      </div>
+      <div class="qr-wrap">
+        <img id="deviceLinkQrImg" alt="Device link QR code" src="">
+        <div>
+          <label>QR route to link this device
+            <input id="deviceLinkRouteOutput" readonly>
+          </label>
+          <div class="button-row">
+            <button id="generateDeviceQrBtn" class="secondary">Generate QR route</button>
+            <button id="copyDeviceRouteBtn" class="secondary">Copy QR route</button>
+          </div>
+          <p class="inline-note">Scan this QR from another device to jump directly into linked-device routing for this client.</p>
+        </div>
+      </div>
+      <div class="grid-3" style="margin-top:0.6rem;">
+        <label>Send remote to linked device
+          <select id="remoteSendTargetSelect">
+            <option value="">Select linked device</option>
+          </select>
+        </label>
+        <label>Remote notification title
+          <input id="remoteSendTitleInput" placeholder="Remote test">
+        </label>
+        <label>Remote notification body
+          <input id="remoteSendBodyInput" placeholder="Message from linked device">
+        </label>
+      </div>
+      <div class="button-row">
+        <button id="sendRemoteNowBtn" class="secondary">Send real remote notification</button>
+      </div>
+      <div class="grid-3" style="margin-top:0.6rem;">
+        <label>Reply to notification ID
+          <input id="responseToIdInput" readonly>
+        </label>
+        <label>Reply target client ID
+          <input id="responseToClientInput" readonly>
+        </label>
+        <label>Reply text
+          <input id="responseTextInput" placeholder="Acknowledged. I saw this notification.">
+        </label>
+      </div>
+      <div class="button-row">
+        <button id="sendResponseBtn" class="secondary">Send response message</button>
+      </div>
+      <div class="grid-2" style="margin-top:0.6rem;">
+        <div>
+          <h3 style="margin-bottom:0.4rem;">Incoming link requests</h3>
+          <div class="list" id="incomingRequestsList"></div>
+        </div>
+        <div>
+          <h3 style="margin-bottom:0.4rem;">Linked / visible devices</h3>
+          <div class="list" id="linkedDevicesList"></div>
+        </div>
+      </div>
+      <div class="chain-nav">
+        <button class="secondary" data-nav-target="home">Back to workspace</button>
+        <button class="secondary" data-open-window="remote">Open remote in new window</button>
+        <button class="secondary" data-nav-target="diagnostics">Check sync diagnostics</button>
+      </div>
+    </section>
+
+    <section class="section-card hidden" id="diagnosticsSection">
+      <div class="section-head">
+        <h2>Diagnostics and fix center</h2>
+        <span class="subtle">Find root causes for missed tasks and sync failures</span>
+      </div>
+      <p class="section-purpose">Purpose: detect why tasks were not completed on schedule, why background delivery failed, why device sync stalled, and show explicit fixes.</p>
+      <p class="inline-note">Covers permission issues, service worker issues, offline state, delayed timers, relay setup gaps, and stale link-sync requests.</p>
+      <div class="button-row">
+        <button id="runDiagnosticsBtn" class="secondary">Run diagnostics scan</button>
+        <button id="openLogsFromDiagnosticsBtn" class="secondary">Open logs section</button>
+      </div>
+      <div class="list" id="diagnosticList"></div>
+      <div class="chain-nav">
+        <button class="secondary" data-nav-target="home">Back to workspace</button>
+        <button class="secondary" data-open-window="diagnostics">Open diagnostics in new window</button>
+        <button class="secondary" data-nav-target="settings">Open settings</button>
+      </div>
+    </section>
+
+    <section class="section-card hidden" id="navigatorSection">
+      <div class="section-head">
+        <h2>Section navigator</h2>
+        <span class="subtle">Chain-linked navigation between all major sections</span>
+      </div>
+      <p class="section-purpose">Purpose: jump between related sections quickly, open focused windows, and keep workflow chained end-to-end.</p>
+      <div class="grid-3">
+        <button class="secondary" data-nav-target="composerSection">Go to composer</button>
+        <button class="secondary" data-nav-target="scheduledSection">Go to scheduled</button>
+        <button class="secondary" data-nav-target="queueSection">Go to queue</button>
+        <button class="secondary" data-nav-target="clientSection">Go to client registry</button>
+        <button class="secondary" data-nav-target="logSection">Go to logs</button>
+        <button class="secondary" data-nav-target="remote">Go to remote access</button>
+      </div>
+      <div class="chain-nav">
+        <button class="secondary" data-open-window="navigator">Open navigator in new window</button>
+        <button class="secondary" data-nav-target="help">Open help center</button>
+        <button class="secondary" data-nav-target="home">Back to workspace</button>
+      </div>
+    </section>
+
+    <section class="section-card" id="composerSection">
+      <div class="section-head">
+        <h2>Notification composer</h2>
+        <span class="subtle">Create local scheduled items or queue entries</span>
+      </div>
+      <p class="section-purpose">Purpose: compose notification payloads and choose whether to send now, schedule later, or queue for sync and processing.</p>
+      <div class="grid-2">
+        <label>Title
+          <input id="titleInput" maxlength="80" placeholder="Build complete">
+        </label>
+        <label>Tag / group
+          <input id="tagInput" maxlength="40" placeholder="release">
+        </label>
+      </div>
+      <label>Message / body
+        <textarea id="bodyInput" maxlength="240" placeholder="Your deployment passed the smoke tests."></textarea>
+      </label>
+      <div class="grid-2">
+        <label>Target URL
+          <input id="targetUrlInput" placeholder="/status">
+        </label>
+        <label>Client target
+          <select id="clientTargetInput">
+            <option value="all">All clients</option>
+          </select>
+        </label>
+      </div>
+      <div class="grid-3">
+        <label>Icon URL (optional)
+          <input id="iconUrlInput" placeholder="./assets/icons/icon-192.png">
+        </label>
+        <label>Badge URL (optional)
+          <input id="badgeUrlInput" placeholder="./assets/icons/icon-192.png">
+        </label>
+        <label>Image URL (optional)
+          <input id="imageUrlInput" placeholder="./assets/hero.png">
+        </label>
+      </div>
+      <div class="grid-3">
+        <label>Actions (title:action, comma-separated)
+          <input id="actionsInput" placeholder="Open App:open, View Task:view-task">
+        </label>
+        <label>Delay (seconds)
+          <input id="delayInput" type="number" min="0" step="1" value="0">
+        </label>
+        <label>Repeat every (seconds, 0 = no repeat)
+          <input id="repeatEveryInput" type="number" min="0" step="1" value="0">
+        </label>
+      </div>
+      <div class="grid-3">
+        <label>Repeat count (0 = no repeat)
+          <input id="repeatCountInput" type="number" min="0" step="1" value="0">
+        </label>
+        <label>Require interaction
+          <select id="requireInteractionInput">
+            <option value="false">false</option>
+            <option value="true">true</option>
+          </select>
+        </label>
+        <label>Silent
+          <select id="silentInput">
+            <option value="false">false</option>
+            <option value="true">true</option>
+          </select>
+        </label>
+      </div>
+      <label>Scheduled date/time (optional)
+        <input id="scheduleAtInput" type="datetime-local">
+      </label>
+      <p class="error-note" id="composerError"></p>
+      <div class="button-row">
+        <button id="scheduleLocalBtn" class="success">Schedule local</button>
+        <button id="addQueueBtn" class="secondary">Add to queue</button>
+        <button id="sendInstantBtn">Send instantly</button>
+        <button id="clearFormBtn" class="secondary">Clear form</button>
+      </div>
+      <details>
+        <summary>Advanced tools</summary>
+        <div class="button-row" style="margin-top:0.5rem;">
+          <button id="generateMassBtn" class="warn">Generate 25 mass items</button>
+          <button id="clearCompletedBtn" class="secondary">Clear completed scheduled</button>
+        </div>
+      </details>
+    </section>
+
+    <section class="section-card" id="scheduledSection">
+      <div class="section-head">
+        <h2>Scheduled notifications</h2>
+        <span class="subtle" id="scheduledSummary">0 pending</span>
+      </div>
+      <p class="section-purpose">Purpose: monitor timer-based tasks, pause/resume, and inspect delayed or failed scheduled notifications.</p>
+      <div class="list" id="scheduledList"></div>
+    </section>
+
+    <section class="section-card" id="queueSection">
+      <div class="section-head">
+        <h2>Queue manager</h2>
+        <span class="subtle">Public JSON and local queue are merged for rendering</span>
+      </div>
+      <p class="section-purpose">Purpose: manage queued tasks from local and public sources, then publish/reschedule/remove with full status visibility.</p>
+      <div class="grid-3">
+        <label>Status filter
+          <select id="queueStatusFilter">
+            <option value="all">All</option>
+            <option value="scheduled">Scheduled</option>
+            <option value="sent">Sent</option>
+            <option value="failed">Failed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </label>
+        <label>Type filter
+          <select id="queueTypeFilter">
+            <option value="all">All</option>
+            <option value="local">Local</option>
+            <option value="public">Public</option>
+          </select>
+        </label>
+        <label>Client filter
+          <select id="queueClientFilter">
+            <option value="all">All clients</option>
+          </select>
+        </label>
+      </div>
+      <div class="list" id="queueList"></div>
+    </section>
+
+    <section class="section-card" id="clientSection">
+      <div class="section-head">
+        <h2>Client registry / testing</h2>
+        <span class="subtle">Simulated client targeting for static-only mode</span>
+      </div>
+      <p class="section-purpose">Purpose: keep device identity stable for targeting, linking, and relay registration across sessions.</p>
+      <div class="grid-3">
+        <label>Client ID
+          <input id="clientIdInput" readonly>
+        </label>
+        <label>Nickname
+          <input id="nicknameInput" maxlength="30" placeholder="My laptop">
+        </label>
+        <label>Subscription status
+          <input id="subscriptionStatusInput" readonly>
+        </label>
+      </div>
+      <p class="meta" id="platformInfo"></p>
+      <div class="button-row">
+        <button id="saveClientBtn" class="secondary">Save client profile</button>
+        <button id="simulateRouteBtn" class="secondary">Simulate route open</button>
+      </div>
+    </section>
+
+    <section class="section-card" id="logSection">
+      <div class="section-head">
+        <h2>Activity log</h2>
+        <span class="subtle">Non-blocking diagnostics</span>
+      </div>
+      <p class="section-purpose">Purpose: provide timestamped evidence for failures, warnings, and recovery actions so troubleshooting is explicit.</p>
+      <div class="log-wrap" id="logList"></div>
+      <div class="button-row">
+        <button id="exportLogsBtn" class="secondary">Export logs</button>
+        <button id="clearLogsBtn" class="secondary">Clear logs</button>
+      </div>
+    </section>
+
+    <section class="section-card" id="changelogSection">
+      <div class="section-head">
+        <h2>Changelog</h2>
+        <span class="subtle" id="changelogVersionBadge">v0.8.0</span>
+      </div>
+      <p class="section-purpose">Purpose: track release categories, launch date, and update scope sourced from GitHub version metadata.</p>
+      <p class="meta" id="changelogLaunchDate">Launch date: 2026-03-12</p>
+      <div class="list" id="changelogHighlights">
+        <article class="list-item">Version pipeline initialized.</article>
+      </div>
+      <div class="button-row">
+        <a id="changelogRepoLink" class="secondary" href="./CHANGELOG.md" target="_blank" rel="noopener">Open full changelog</a>
+      </div>
+    </section>
+
+    <section class="section-card hidden" id="proConsoleSection">
+      <div class="section-head">
+        <h2>Professional manual console</h2>
+        <span class="subtle">Scripted controls for advanced operators</span>
+      </div>
+      <p class="section-purpose">Purpose: run manual scripts against app helpers for direct control, automation, and deep testing workflows.</p>
+      <label>Script input (local only)
+        <textarea id="proScriptInput" class="code-area" spellcheck="false">help;</textarea>
+      </label>
+      <div class="button-row">
+        <button id="runProScriptBtn" class="warn">Run script</button>
+        <button id="proSendTestScriptBtn" class="secondary">Insert send-test script</button>
+        <button id="proHelpCommandsBtn" class="secondary">Help commands</button>
+        <button id="clearProOutputBtn" class="secondary">Clear output</button>
+      </div>
+      <div id="proConsoleOutput" class="pro-output">
+        <div class="pro-line info">Type help or click Help commands to list available language commands.</div>
+      </div>
+      <div class="pro-grid">
+        <article class="pro-panel">
+          <h3>Action Response</h3>
+          <pre id="proActionResponseView" class="pro-inspector">Run a command to see structured response.</pre>
+        </article>
+        <article class="pro-panel">
+          <h3>Active Draft Inspector</h3>
+          <pre id="proDraftInspector" class="pro-inspector"></pre>
+        </article>
+        <article class="pro-panel">
+          <h3>Local Presets</h3>
+          <div id="proPresetList" class="list"></div>
+          <div class="button-row">
+            <button class="secondary" data-pro-cmd="presets">Refresh presets</button>
+            <button class="secondary" data-pro-cmd="recent">Recent</button>
+            <button class="secondary" data-pro-cmd="last">Last</button>
+          </div>
+        </article>
+        <article class="pro-panel">
+          <h3>Repo Preset Catalog</h3>
+          <div id="proRepoPresetList" class="list"></div>
+          <div class="button-row">
+            <button class="secondary" data-pro-cmd="repo presets">Reload repo presets</button>
+          </div>
+        </article>
+        <article class="pro-panel">
+          <h3>Render Preview</h3>
+          <pre id="proRenderPreview" class="pro-inspector">Use render or preview command.</pre>
+        </article>
+        <article class="pro-panel">
+          <h3>Asset Library</h3>
+          <label>Asset role
+            <select id="proAssetRoleSelect">
+              <option value="icon">icon</option>
+              <option value="badge">badge</option>
+              <option value="image">image</option>
+            </select>
+          </label>
+          <label>Asset ID
+            <input id="proAssetIdInput" placeholder="logo-main">
+          </label>
+          <label>File
+            <input id="proAssetFileInput" type="file" accept="image/*">
+          </label>
+          <div class="button-row">
+            <button id="proAssetUploadBtn" class="secondary">Add asset</button>
+            <button class="secondary" data-pro-cmd="assets">List assets</button>
+          </div>
+          <div id="proAssetList" class="list"></div>
+        </article>
+        <article class="pro-panel">
+          <h3>Theme and Domains</h3>
+          <pre id="proThemeDomainView" class="pro-inspector">Theme and domain state appears here.</pre>
+          <div class="button-row">
+            <button class="secondary" data-pro-cmd="theme show">Theme show</button>
+            <button class="secondary" data-pro-cmd="domains">Domains</button>
+          </div>
+        </article>
+        <article class="pro-panel" style="grid-column: 1 / -1;">
+          <h3>Embed Export Lab</h3>
+          <div class="button-row">
+            <button class="secondary" data-pro-cmd="export html">Generate HTML snippet</button>
+            <button class="secondary" data-pro-cmd="export js">Generate JS snippet</button>
+            <button class="secondary" data-pro-cmd="export json">Generate JSON config</button>
+            <button class="secondary" data-pro-cmd="embed list">List embeds</button>
+          </div>
+          <label>HTML snippet
+            <textarea id="proEmbedHtmlOutput" class="snippet-box" readonly></textarea>
+          </label>
+          <label>JS snippet
+            <textarea id="proEmbedJsOutput" class="snippet-box" readonly></textarea>
+          </label>
+          <label>JSON config
+            <textarea id="proEmbedJsonOutput" class="snippet-box" readonly></textarea>
+          </label>
+          <div id="proEmbedList" class="list"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <h3 style="margin-bottom:0.4rem;">Notes and upgrade path</h3>
+      <p class="footer-note">
+        Static-only mode supports local scheduling and optional queue polling from public JSON.
+        True remote push to closed browsers requires a backend sender plus subscription storage.
+      </p>
+      <p class="footer-note">
+        This build uses same-origin service worker registration at ./sw.js and is compatible with GitHub Pages subpaths.
+      </p>
+    </section>
+  </main>
+
+  <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="false"></div>
+  <div class="hover-help hidden" id="hoverHelp" role="tooltip"></div>
+  <div id="onboardingModal" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
+    <section class="modal-card">
+      <h2 id="onboardingTitle">Welcome setup and consent</h2>
+      <p class="inline-note">Before using notifications, please confirm consent and device setup permissions.</p>
+      <div class="consent-box">
+        <label>
+          <input id="consentFingerprintInput" type="checkbox">
+          I accept that this app creates a local device fingerprint (client ID + platform signature) for tracking linked-device routing and notification usage.
+        </label>
+        <label>
+          <input id="consentNotificationInput" type="checkbox">
+          I allow notification permission flow and service worker usage for background-capable behavior on desktop and mobile browsers.
+        </label>
+      </div>
+      <p class="inline-note">Mobile note: iOS and Android browsers may still limit true background behavior depending on install state, browser policy, and power settings.</p>
+      <div class="button-row">
+        <button id="acceptOnboardingBtn" class="success">Accept and continue</button>
+        <button id="declineOnboardingBtn" class="secondary">Continue with limited mode</button>
+      </div>
+    </section>
+  </div>
+
+  <script src="./response-schema.js"></script>
+  <script src="./draft-store.js"></script>
+  <script src="./preset-store.js"></script>
+  <script src="./embed-store.js"></script>
+  <script src="./asset-store.js"></script>
+  <script src="./repo-preset-adapter.js"></script>
+  <script src="./placeholder-engine.js"></script>
+  <script src="./embed-exporter.js"></script>
+  <script src="./command-registry.js"></script>
+  <script src="./command-parser.js"></script>
+  <script src="./action-normalizer.js"></script>
+  <script src="./action-executor.js"></script>
+  <script src="./console-language.js"></script>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const APP_VERSION = "0.8.0";
+      const APP_LAUNCH_DATE = "2026-03-12";
+      const VERSION_FILE_PATH = "./version.json";
+      const VERSION_NOTICE_KEY = "notificationLab.lastVersionNotice.v1";
+      const DEFAULT_VERSION_SOURCE = {
+        owner: "Sotravil",
+        repo: "gnests",
+        branch: "main",
+        path: "version.json"
+      };
+
+      // Storage keys are centralized to keep persistence reliable and easy to audit.
+      const STORAGE_KEYS = {
+        appState: "notificationLab.appState.v1"
+      };
+
+      // All runtime state is kept under one namespace to avoid global chaos.
+      const app = {
+        state: {
+          settings: {
+            autoRegisterSw: true,
+            pollingEnabled: false,
+            pollingIntervalMs: 60000,
+            showExplanations: true,
+            complexityLevel: "medium",
+            onboardingAccepted: false,
+            consentFingerprint: false,
+            queueUrl: "./queue.json",
+            relay: {
+              enabled: false,
+              baseUrl: "",
+              vapidPublicKey: "",
+              apiKey: ""
+            },
+            githubSync: {
+              enabled: false,
+              owner: "",
+              repo: "",
+              path: "queue.json",
+              branch: "main",
+              token: ""
+            }
+          },
+          client: {
+            id: "",
+            nickname: "",
+            platform: "",
+            subscriptionStatus: "not-subscribed",
+            pushSubscription: null
+          },
+          draft: {
+            title: "",
+            body: "",
+            targetUrl: "/",
+            iconUrl: "",
+            badgeUrl: "",
+            imageUrl: "",
+            tag: "",
+            actionsRaw: "",
+            clientTarget: "all",
+            delaySeconds: 0,
+            repeatEverySeconds: 0,
+            repeatCount: 0,
+            requireInteraction: false,
+            silent: false,
+            source: "local-ui",
+            status: "draft",
+            scheduledAt: ""
+          },
+          scheduled: [],
+          queue: [],
+          processedQueueIds: [],
+          logs: [],
+          linking: {
+            linkedDevices: [],
+            incomingRequests: [],
+            outgoingRequests: []
+          },
+          runtime: {
+            swRegistered: false,
+            permission: "default",
+            lastSyncAt: null,
+            syncMode: "local",
+            capabilityLabel: "checking",
+            version: {
+              localVersion: APP_VERSION,
+              localLaunchDate: APP_LAUNCH_DATE,
+              remoteVersion: APP_VERSION,
+              remoteLaunchDate: APP_LAUNCH_DATE,
+              highlights: [],
+              changelogUrl: "./CHANGELOG.md",
+              source: "local",
+              checkedAt: null
+            }
+          }
+        },
+        timers: new Map(),
+        pollingTimer: null,
+        nodes: {},
+        ui: {
+          activeHelpControl: null
+        }
+      };
+
+      const HELP_MAP = {
+        requestPermBtn: {
+          title: "Request permission",
+          detail: "Asks the browser for notification permission.",
+          impact: "Updates Permission badge and allows notification sends when granted."
+        },
+        registerSwBtn: {
+          title: "Register service worker",
+          detail: "Registers ./sw.js on the current origin scope.",
+          impact: "Enables worker-driven notifications, click routing, and offline caching."
+        },
+        sendNowBtn: {
+          title: "Send test now",
+          detail: "Sends a notification immediately from the current draft.",
+          impact: "Creates a runtime notification and log entry."
+        },
+        refreshQueueBtn: {
+          title: "Refresh queue",
+          detail: "Fetches queue.json and processes due queue items.",
+          impact: "Updates queue list, sync timestamp, and logs."
+        },
+        syncGithubBtn: {
+          title: "Sync now",
+          detail: "Attempts optional GitHub API sync using saved settings.",
+          impact: "Changes Sync mode badge and writes queue snapshot remotely."
+        },
+        startPollingBtn: {
+          title: "Start polling",
+          detail: "Starts repeated queue sync + processing on an interval.",
+          impact: "Continuously fetches queue and processes due tasks."
+        },
+        stopPollingBtn: {
+          title: "Stop polling",
+          detail: "Stops repeated queue polling.",
+          impact: "Leaves app in manual sync mode."
+        },
+        scheduleLocalBtn: {
+          title: "Schedule local",
+          detail: "Creates a scheduled notification task from the composer draft.",
+          impact: "Adds an item to Scheduled notifications and starts timers."
+        },
+        addQueueBtn: {
+          title: "Add to queue",
+          detail: "Creates a queue item from the draft without immediate send.",
+          impact: "Adds to Queue manager and can later be published or auto-processed."
+        },
+        sendInstantBtn: {
+          title: "Send instantly",
+          detail: "Instantly delivers current draft using service worker/message flow.",
+          impact: "Fast runtime test notification."
+        },
+        titleInput: {
+          title: "Title",
+          detail: "Main heading shown in notification UI.",
+          impact: "Required for creating and sending tasks."
+        },
+        bodyInput: {
+          title: "Message body",
+          detail: "Notification content text.",
+          impact: "Required for sending notifications."
+        },
+        targetUrlInput: {
+          title: "Target URL",
+          detail: "Route or URL to open when notification is clicked.",
+          impact: "Used by service worker click handling."
+        },
+        actionsInput: {
+          title: "Actions",
+          detail: "Comma-separated title:action pairs for notification action buttons.",
+          impact: "Action metadata is sent to service worker and click logs."
+        },
+        repeatEveryInput: {
+          title: "Repeat every",
+          detail: "Interval between repeated sends.",
+          impact: "Combined with repeat count to reschedule timer after each send."
+        },
+        repeatCountInput: {
+          title: "Repeat count",
+          detail: "How many repeat cycles remain.",
+          impact: "Controls repeated scheduling lifespan."
+        },
+        generateRemoteLinkBtn: {
+          title: "Generate remote link",
+          detail: "Builds a shareable invite URL with client/channel metadata.",
+          impact: "Helps route users to grant remote notification access on a shared gateway."
+        },
+        runDiagnosticsBtn: {
+          title: "Run diagnostics scan",
+          detail: "Scans runtime state and queued tasks for failure patterns.",
+          impact: "Produces explicit root causes and fix instructions for delayed or failed workflows."
+        },
+        generateDeviceQrBtn: {
+          title: "Generate QR route",
+          detail: "Builds a direct link route and QR code for device linking.",
+          impact: "Allows another device to scan and jump into remote linking with peer prefilled."
+        }
+      };
+
+      const SECTION_HELP = {
+        composerSection: "Composer builds the source payload and controls scheduling, queueing, and instant test sends.",
+        scheduledSection: "Scheduled panel runs local timers, supports pause/resume, and tracks status progression.",
+        queueSection: "Queue manager filters local/public queue tasks and controls publish/edit/reschedule/remove actions.",
+        clientSection: "Client registry stores this device identity used for targeted notifications.",
+        logSection: "Activity log records system actions, warnings, and errors for diagnostics.",
+        diagnosticsSection: "Diagnostics scans missed tasks, sync gaps, and background limitations with fix guidance.",
+        navigatorSection: "Section navigator chains section-to-section flow and open-in-new-window routes."
+      };
+
+      const MODE_NOTES = {
+        easy: "Easy mode uses guided block actions with minimal setup choices.",
+        medium: "Medium mode balances clarity and control.",
+        hard: "Hard mode exposes more diagnostics and operational controls.",
+        professional: "Professional mode prioritizes manual workflows and scriptable controls with minimal explanation noise."
+      };
+
+      function qs(id) {
+        return document.getElementById(id);
+      }
+
+      function uid(prefix) {
+        if (window.crypto && window.crypto.randomUUID) {
+          return `${prefix}-${window.crypto.randomUUID()}`;
+        }
+        return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+      }
+
+      function nowIso() {
+        return new Date().toISOString();
+      }
+
+      function tsLabel(iso) {
+        if (!iso) {
+          return "never";
+        }
+        return new Date(iso).toLocaleString();
+      }
+
+      function releaseDateLabel(rawDate) {
+        if (!rawDate) {
+          return "unknown";
+        }
+        const parsed = new Date(rawDate);
+        if (Number.isNaN(parsed.getTime())) {
+          return rawDate;
+        }
+        return parsed.toLocaleDateString(undefined, {
+          year: "numeric",
+          month: "short",
+          day: "2-digit"
+        });
+      }
+
+      function compareSemver(left, right) {
+        const leftParts = String(left || "0.0.0").split(".").map((part) => Number(part) || 0);
+        const rightParts = String(right || "0.0.0").split(".").map((part) => Number(part) || 0);
+        const maxLength = Math.max(leftParts.length, rightParts.length);
+        for (let i = 0; i < maxLength; i += 1) {
+          const a = leftParts[i] || 0;
+          const b = rightParts[i] || 0;
+          if (a > b) {
+            return 1;
+          }
+          if (a < b) {
+            return -1;
+          }
+        }
+        return 0;
+      }
+
+      function buildRawGithubFileUrl(owner, repo, branch, filePath) {
+        const safePath = String(filePath || "version.json")
+          .split("/")
+          .filter(Boolean)
+          .map((segment) => encodeURIComponent(segment))
+          .join("/");
+        return `https://raw.githubusercontent.com/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/${encodeURIComponent(branch)}/${safePath}`;
+      }
+
+      function getVersionSourceCandidates() {
+        const sync = app.state.settings.githubSync || {};
+        const owner = sync.owner || DEFAULT_VERSION_SOURCE.owner;
+        const repo = sync.repo || DEFAULT_VERSION_SOURCE.repo;
+        const branch = sync.branch || DEFAULT_VERSION_SOURCE.branch;
+        const path = DEFAULT_VERSION_SOURCE.path;
+        return [
+          {
+            source: "github-raw",
+            url: buildRawGithubFileUrl(owner, repo, branch, path)
+          },
+          {
+            source: "local-file",
+            url: VERSION_FILE_PATH
+          }
+        ];
+      }
+
+      function normalizeVersionPayload(payload) {
+        if (!payload || typeof payload !== "object") {
+          return null;
+        }
+        const version = String(payload.version || "").trim();
+        if (!version) {
+          return null;
+        }
+        const releaseDate = String(payload.releaseDate || APP_LAUNCH_DATE).trim();
+        const changelogUrl = String(payload.changelogUrl || "./CHANGELOG.md").trim();
+        const highlights = Array.isArray(payload.highlights) ? payload.highlights.slice(0, 8) : [];
+        return {
+          version,
+          releaseDate,
+          changelogUrl,
+          highlights,
+          categories: Array.isArray(payload.categories) ? payload.categories.slice(0, 8) : []
+        };
+      }
+
+      async function fetchVersionInfo() {
+        const candidates = getVersionSourceCandidates();
+        for (const candidate of candidates) {
+          try {
+            const response = await fetch(candidate.url, {
+              cache: "no-store"
+            });
+            if (!response.ok) {
+              continue;
+            }
+            const parsed = await response.json();
+            const normalized = normalizeVersionPayload(parsed);
+            if (!normalized) {
+              continue;
+            }
+            return {
+              source: candidate.source,
+              data: normalized
+            };
+          } catch (_error) {
+            // Ignore source failures and continue to fallback.
+          }
+        }
+        return {
+          source: "local-runtime",
+          data: {
+            version: APP_VERSION,
+            releaseDate: APP_LAUNCH_DATE,
+            changelogUrl: "./CHANGELOG.md",
+            highlights: [],
+            categories: []
+          }
+        };
+      }
+
+      function escapeHtml(input) {
+        return String(input)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/\"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      // Toasts provide non-blocking feedback and auto-expire after a short delay.
+      function toast(type, text, timeout = 3400, onClick) {
+        const node = document.createElement("div");
+        node.className = `toast ${type}`;
+        node.textContent = text;
+        if (typeof onClick === "function") {
+          node.classList.add("clickable");
+          node.addEventListener("click", () => {
+            onClick();
+            node.remove();
+          });
+        }
+        app.nodes.toastStack.appendChild(node);
+        window.setTimeout(() => {
+          node.remove();
+        }, timeout);
+      }
+
+      function log(level, message, meta = {}) {
+        const entry = {
+          id: uid("log"),
+          level,
+          message,
+          timestamp: nowIso(),
+          meta
+        };
+        app.state.logs.unshift(entry);
+        if (app.state.logs.length > 300) {
+          app.state.logs.length = 300;
+        }
+        renderLogs();
+        persistState();
+      }
+
+      function persistState() {
+        const snapshot = {
+          settings: app.state.settings,
+          client: app.state.client,
+          draft: app.state.draft,
+          scheduled: app.state.scheduled,
+          queue: app.state.queue,
+          processedQueueIds: app.state.processedQueueIds,
+          logs: app.state.logs,
+          linking: app.state.linking,
+          runtime: {
+            lastSyncAt: app.state.runtime.lastSyncAt
+          }
+        };
+        localStorage.setItem(STORAGE_KEYS.appState, JSON.stringify(snapshot));
+      }
+
+      function loadState() {
+        const raw = localStorage.getItem(STORAGE_KEYS.appState);
+        if (!raw) {
+          return;
+        }
+        try {
+          const parsed = JSON.parse(raw);
+          app.state.settings = { ...app.state.settings, ...(parsed.settings || {}) };
+          app.state.client = { ...app.state.client, ...(parsed.client || {}) };
+          app.state.draft = { ...app.state.draft, ...(parsed.draft || {}) };
+          app.state.scheduled = Array.isArray(parsed.scheduled) ? parsed.scheduled : [];
+          app.state.queue = Array.isArray(parsed.queue) ? parsed.queue : [];
+          app.state.processedQueueIds = Array.isArray(parsed.processedQueueIds) ? parsed.processedQueueIds : [];
+          app.state.logs = Array.isArray(parsed.logs) ? parsed.logs : [];
+          app.state.linking = {
+            linkedDevices: parsed.linking && Array.isArray(parsed.linking.linkedDevices) ? parsed.linking.linkedDevices : [],
+            incomingRequests: parsed.linking && Array.isArray(parsed.linking.incomingRequests) ? parsed.linking.incomingRequests : [],
+            outgoingRequests: parsed.linking && Array.isArray(parsed.linking.outgoingRequests) ? parsed.linking.outgoingRequests : []
+          };
+          app.state.runtime.lastSyncAt = parsed.runtime && parsed.runtime.lastSyncAt ? parsed.runtime.lastSyncAt : null;
+        } catch (error) {
+          toast("error", "State restore failed; using clean defaults.");
+          console.error(error);
+        }
+      }
+
+      function collectNodes() {
+        app.nodes = {
+          envBadge: qs("envBadge"),
+          swBadge: qs("swBadge"),
+          permBadge: qs("permBadge"),
+          syncModeBadge: qs("syncModeBadge"),
+          capabilityBadge: qs("capabilityBadge"),
+          syncBadge: qs("syncBadge"),
+          modeBadge: qs("modeBadge"),
+          versionBadgeBtn: qs("versionBadgeBtn"),
+          latestVersionBadge: qs("latestVersionBadge"),
+          launchBadge: qs("launchBadge"),
+          modeToolbar: qs("modeToolbar"),
+          modeNote: qs("modeNote"),
+          toastStack: qs("toastStack"),
+          onboardingModal: qs("onboardingModal"),
+          consentFingerprintInput: qs("consentFingerprintInput"),
+          consentNotificationInput: qs("consentNotificationInput"),
+          acceptOnboardingBtn: qs("acceptOnboardingBtn"),
+          declineOnboardingBtn: qs("declineOnboardingBtn"),
+          easyWorkbenchSection: qs("easyWorkbenchSection"),
+          easyRequestPermBtn: qs("easyRequestPermBtn"),
+          easyRegisterSwBtn: qs("easyRegisterSwBtn"),
+          easyQuickSendBtn: qs("easyQuickSendBtn"),
+          easyOpenLinkingBtn: qs("easyOpenLinkingBtn"),
+          proConsoleSection: qs("proConsoleSection"),
+          proScriptInput: qs("proScriptInput"),
+          runProScriptBtn: qs("runProScriptBtn"),
+          proSendTestScriptBtn: qs("proSendTestScriptBtn"),
+          proHelpCommandsBtn: qs("proHelpCommandsBtn"),
+          clearProOutputBtn: qs("clearProOutputBtn"),
+          proConsoleOutput: qs("proConsoleOutput"),
+          proActionResponseView: qs("proActionResponseView"),
+          proDraftInspector: qs("proDraftInspector"),
+          proPresetList: qs("proPresetList"),
+          proRepoPresetList: qs("proRepoPresetList"),
+          proRenderPreview: qs("proRenderPreview"),
+          proAssetRoleSelect: qs("proAssetRoleSelect"),
+          proAssetIdInput: qs("proAssetIdInput"),
+          proAssetFileInput: qs("proAssetFileInput"),
+          proAssetUploadBtn: qs("proAssetUploadBtn"),
+          proAssetList: qs("proAssetList"),
+          proThemeDomainView: qs("proThemeDomainView"),
+          proEmbedHtmlOutput: qs("proEmbedHtmlOutput"),
+          proEmbedJsOutput: qs("proEmbedJsOutput"),
+          proEmbedJsonOutput: qs("proEmbedJsonOutput"),
+          proEmbedList: qs("proEmbedList"),
+          composerError: qs("composerError"),
+          titleInput: qs("titleInput"),
+          bodyInput: qs("bodyInput"),
+          targetUrlInput: qs("targetUrlInput"),
+          iconUrlInput: qs("iconUrlInput"),
+          badgeUrlInput: qs("badgeUrlInput"),
+          imageUrlInput: qs("imageUrlInput"),
+          actionsInput: qs("actionsInput"),
+          tagInput: qs("tagInput"),
+          clientTargetInput: qs("clientTargetInput"),
+          delayInput: qs("delayInput"),
+          repeatEveryInput: qs("repeatEveryInput"),
+          repeatCountInput: qs("repeatCountInput"),
+          requireInteractionInput: qs("requireInteractionInput"),
+          silentInput: qs("silentInput"),
+          scheduleAtInput: qs("scheduleAtInput"),
+          clientSection: qs("clientSection"),
+          logSection: qs("logSection"),
+          scheduledSummary: qs("scheduledSummary"),
+          scheduledList: qs("scheduledList"),
+          queueList: qs("queueList"),
+          queueStatusFilter: qs("queueStatusFilter"),
+          queueTypeFilter: qs("queueTypeFilter"),
+          queueClientFilter: qs("queueClientFilter"),
+          clientIdInput: qs("clientIdInput"),
+          nicknameInput: qs("nicknameInput"),
+          subscriptionStatusInput: qs("subscriptionStatusInput"),
+          platformInfo: qs("platformInfo"),
+          logList: qs("logList"),
+          changelogSection: qs("changelogSection"),
+          changelogVersionBadge: qs("changelogVersionBadge"),
+          changelogLaunchDate: qs("changelogLaunchDate"),
+          changelogHighlights: qs("changelogHighlights"),
+          changelogRepoLink: qs("changelogRepoLink"),
+          helpToggleBtn: qs("helpToggleBtn"),
+          hamburgerBtn: qs("hamburgerBtn"),
+          hamburgerMenu: qs("hamburgerMenu"),
+          helpCenterSection: qs("helpCenterSection"),
+          helpList: qs("helpList"),
+          helpContextNote: qs("helpContextNote"),
+          settingsSection: qs("settingsSection"),
+          remoteAccessSection: qs("remoteAccessSection"),
+          diagnosticsSection: qs("diagnosticsSection"),
+          navigatorSection: qs("navigatorSection"),
+          toggleExplanationsMenuBtn: qs("toggleExplanationsMenuBtn"),
+          hoverHelp: qs("hoverHelp"),
+          settingAutoSwInput: qs("settingAutoSwInput"),
+          settingPollingMsInput: qs("settingPollingMsInput"),
+          settingGithubEnabledInput: qs("settingGithubEnabledInput"),
+          settingRelayEnabledInput: qs("settingRelayEnabledInput"),
+          settingRelayBaseUrlInput: qs("settingRelayBaseUrlInput"),
+          settingRelayVapidInput: qs("settingRelayVapidInput"),
+          settingRelayApiKeyInput: qs("settingRelayApiKeyInput"),
+          subscribePushBtn: qs("subscribePushBtn"),
+          registerRelayBtn: qs("registerRelayBtn"),
+          settingGithubOwnerInput: qs("settingGithubOwnerInput"),
+          settingGithubRepoInput: qs("settingGithubRepoInput"),
+          settingGithubPathInput: qs("settingGithubPathInput"),
+          settingGithubBranchInput: qs("settingGithubBranchInput"),
+          settingGithubTokenInput: qs("settingGithubTokenInput"),
+          saveSettingsBtn: qs("saveSettingsBtn"),
+          remoteHubBaseInput: qs("remoteHubBaseInput"),
+          remoteTopicInput: qs("remoteTopicInput"),
+          remoteShareLinkOutput: qs("remoteShareLinkOutput"),
+          generateRemoteLinkBtn: qs("generateRemoteLinkBtn"),
+          copyRemoteLinkBtn: qs("copyRemoteLinkBtn"),
+          openRemoteLinkBtn: qs("openRemoteLinkBtn"),
+          deviceLinkQrImg: qs("deviceLinkQrImg"),
+          deviceLinkRouteOutput: qs("deviceLinkRouteOutput"),
+          generateDeviceQrBtn: qs("generateDeviceQrBtn"),
+          copyDeviceRouteBtn: qs("copyDeviceRouteBtn"),
+          remoteLocalClientIdInput: qs("remoteLocalClientIdInput"),
+          remotePeerIdInput: qs("remotePeerIdInput"),
+          remotePeerAliasInput: qs("remotePeerAliasInput"),
+          requestShareLinkBtn: qs("requestShareLinkBtn"),
+          announcePresenceBtn: qs("announcePresenceBtn"),
+          remoteSendTargetSelect: qs("remoteSendTargetSelect"),
+          remoteSendTitleInput: qs("remoteSendTitleInput"),
+          remoteSendBodyInput: qs("remoteSendBodyInput"),
+          sendRemoteNowBtn: qs("sendRemoteNowBtn"),
+          responseToIdInput: qs("responseToIdInput"),
+          responseToClientInput: qs("responseToClientInput"),
+          responseTextInput: qs("responseTextInput"),
+          sendResponseBtn: qs("sendResponseBtn"),
+          incomingRequestsList: qs("incomingRequestsList"),
+          linkedDevicesList: qs("linkedDevicesList"),
+          runDiagnosticsBtn: qs("runDiagnosticsBtn"),
+          openLogsFromDiagnosticsBtn: qs("openLogsFromDiagnosticsBtn"),
+          diagnosticList: qs("diagnosticList")
+        };
+      }
+
+      function updateExplanationMenuLabel() {
+        if (!app.nodes.toggleExplanationsMenuBtn) {
+          return;
+        }
+        app.nodes.toggleExplanationsMenuBtn.textContent = app.state.settings.showExplanations ? "Hide explanations" : "Show explanations";
+      }
+
+      function appendProOutput(level, text) {
+        if (!app.nodes.proConsoleOutput) {
+          return;
+        }
+        const row = document.createElement("div");
+        row.className = `pro-line ${level || "info"}`;
+        row.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+        app.nodes.proConsoleOutput.appendChild(row);
+        app.nodes.proConsoleOutput.scrollTop = app.nodes.proConsoleOutput.scrollHeight;
+      }
+
+      function clearProOutput() {
+        if (!app.nodes.proConsoleOutput) {
+          return;
+        }
+        app.nodes.proConsoleOutput.innerHTML = "";
+      }
+
+      function stringifySafe(v) {
+        try {
+          return JSON.stringify(v, null, 2);
+        } catch (_e) {
+          return String(v);
+        }
+      }
+
+      function renderProDraftInspector() {
+        if (!window.GNESTSDraftStore || !app.nodes.proDraftInspector) {
+          return;
+        }
+        app.nodes.proDraftInspector.textContent = stringifySafe(window.GNESTSDraftStore.loadDraft());
+      }
+
+      function renderProPresetList() {
+        if (!window.GNESTSPresetStore || !app.nodes.proPresetList) {
+          return;
+        }
+        const items = window.GNESTSPresetStore.list();
+        if (!items.length) {
+          app.nodes.proPresetList.innerHTML = "<p class='subtle'>No local presets yet.</p>";
+          return;
+        }
+        app.nodes.proPresetList.innerHTML = items.map((p) => `
+          <article class="item-card">
+            <div><strong>${escapeHtml(p.name)}</strong></div>
+            <div class="meta">updated: ${escapeHtml(new Date(p.updatedAt || Date.now()).toLocaleString())}</div>
+            <div class="button-row">
+              <button class="secondary" data-pro-cmd="load \"${escapeHtml(p.name)}\"">Load</button>
+              <button class="secondary" data-pro-cmd="clone \"${escapeHtml(p.name)}\" as \"${escapeHtml(p.name)}-copy\"">Clone</button>
+              <button class="danger" data-pro-cmd="delete \"${escapeHtml(p.name)}\"">Delete</button>
+            </div>
+          </article>
+        `).join("");
+      }
+
+      async function renderProRepoList() {
+        if (!window.GNESTSRepoPresetAdapter || !app.nodes.proRepoPresetList) {
+          return;
+        }
+        try {
+          const items = await window.GNESTSRepoPresetAdapter.list(false);
+          if (!items.length) {
+            app.nodes.proRepoPresetList.innerHTML = "<p class='subtle'>No repo presets in catalog.</p>";
+            return;
+          }
+          app.nodes.proRepoPresetList.innerHTML = items.map((p) => `
+            <article class="item-card">
+              <div><strong>${escapeHtml(p.name || "unnamed")}</strong></div>
+              <div class="meta">${escapeHtml(p.label || p.description || "repo preset")}</div>
+              <div class="button-row">
+                <button class="secondary" data-pro-cmd="repo show \"${escapeHtml(p.name)}\"">Show</button>
+                <button class="secondary" data-pro-cmd="import preset \"${escapeHtml(p.name)}\"">Import</button>
+                <button class="secondary" data-pro-cmd="load repo \"${escapeHtml(p.name)}\"">Load</button>
+              </div>
+            </article>
+          `).join("");
+        } catch (_e) {
+          app.nodes.proRepoPresetList.innerHTML = "<p class='subtle'>Failed to load repo catalog.</p>";
+        }
+      }
+
+      function renderProAssets() {
+        if (!window.GNESTSAssetStore || !app.nodes.proAssetList) {
+          return;
+        }
+        const items = window.GNESTSAssetStore.list();
+        if (!items.length) {
+          app.nodes.proAssetList.innerHTML = "<p class='subtle'>No assets uploaded yet.</p>";
+          return;
+        }
+        app.nodes.proAssetList.innerHTML = items.map((a) => `
+          <article class="item-card">
+            <div><strong>${escapeHtml(a.id)}</strong></div>
+            <div class="meta">type: ${escapeHtml(a.type || "image")}</div>
+            <div class="button-row">
+              <button class="secondary" data-pro-cmd="asset use ${escapeHtml(a.type || "image")} \"${escapeHtml(a.id)}\"">Use</button>
+              <button class="danger" data-pro-cmd="asset remove \"${escapeHtml(a.id)}\"">Remove</button>
+            </div>
+          </article>
+        `).join("");
+      }
+
+      function renderProThemeDomain() {
+        if (!window.GNESTSDraftStore || !app.nodes.proThemeDomainView) {
+          return;
+        }
+        const d = window.GNESTSDraftStore.loadDraft();
+        app.nodes.proThemeDomainView.textContent = stringifySafe({ theme: d.theme, domains: d.domains });
+      }
+
+      function renderProEmbeds() {
+        if (!window.GNESTSEmbedStore || !app.nodes.proEmbedList) {
+          return;
+        }
+        const items = window.GNESTSEmbedStore.list();
+        if (!items.length) {
+          app.nodes.proEmbedList.innerHTML = "<p class='subtle'>No saved embed configs.</p>";
+          return;
+        }
+        app.nodes.proEmbedList.innerHTML = items.map((e) => `
+          <article class="item-card">
+            <div><strong>${escapeHtml(e.name)}</strong></div>
+            <div class="button-row">
+              <button class="secondary" data-pro-cmd="embed load \"${escapeHtml(e.name)}\"">Load</button>
+              <button class="secondary" data-pro-cmd="embed regenerate \"${escapeHtml(e.name)}\"">Regenerate</button>
+              <button class="danger" data-pro-cmd="embed delete \"${escapeHtml(e.name)}\"">Delete</button>
+            </div>
+          </article>
+        `).join("");
+      }
+
+      async function refreshProPanels() {
+        renderProDraftInspector();
+        renderProPresetList();
+        renderProAssets();
+        renderProThemeDomain();
+        renderProEmbeds();
+        await renderProRepoList();
+      }
+
+      async function uploadProAsset() {
+        if (!window.GNESTSAssetStore) {
+          return;
+        }
+        const file = app.nodes.proAssetFileInput.files && app.nodes.proAssetFileInput.files[0];
+        const role = app.nodes.proAssetRoleSelect.value;
+        const id = (app.nodes.proAssetIdInput.value || "").trim();
+        if (!file || !id) {
+          toast("warn", "Select a file and asset id first.");
+          return;
+        }
+        try {
+          const dataUrl = await window.GNESTSAssetStore.fileToDataUrl(file);
+          window.GNESTSAssetStore.save(id, {
+            type: role,
+            src: dataUrl,
+            name: file.name,
+            size: file.size,
+            mime: file.type
+          });
+          app.nodes.proAssetFileInput.value = "";
+          app.nodes.proAssetIdInput.value = "";
+          toast("success", "Asset added.");
+          await refreshProPanels();
+        } catch (error) {
+          toast("error", "Asset upload failed.");
+          appendProOutput("error", String(error));
+        }
+      }
+
+      async function runProCommand(cmdText) {
+        const code = String(cmdText || "").trim();
+        if (!code) {
+          return;
+        }
+
+        appendProOutput("command", code);
+        const results = await window.NotificationLang.execute(code, {
+          mode: "professional",
+          strict: false,
+          clientId: app.state.client.id,
+          platform: app.state.client.platform,
+          sendNotification: async (payload) => notifyNow(payload, "console"),
+          requestPermission,
+          registerServiceWorker,
+          runDiagnostics: runDiagnosticsScan,
+          applyMode: applyComplexityMode,
+          scheduleNotification: (args) => {
+            const draft = app.state.draft;
+            const payload = buildNotificationPayload({
+              ...draft,
+              title: args.title || draft.title || "Scheduled",
+              body: args.body || draft.body || "",
+              delaySeconds: 0,
+              scheduledAt: ""
+            });
+            const item = {
+              id: uid("sched"),
+              source: "pro-console",
+              payload,
+              createdAt: nowIso(),
+              timestamp: nowIso(),
+              fireAt: Date.now() + Math.max(0, Number(args.inMs || 0)),
+              sendAt: Date.now() + Math.max(0, Number(args.inMs || 0)),
+              status: "scheduled",
+              repeat: { enabled: false, everySeconds: 0, remaining: 0 },
+              pausedAt: null,
+              remainingMs: null
+            };
+            app.state.scheduled.unshift(item);
+            scheduleTimer(item.id);
+            persistState();
+            renderScheduledList();
+            return { id: item.id, fireAt: item.fireAt };
+          }
+        });
+
+        results.forEach((entry) => {
+          const rsp = entry.response;
+          if (rsp && rsp.data && rsp.data.clear) {
+            clearProOutput();
+          }
+          const level = !rsp ? "error" : (rsp.ok ? (rsp.status === "warning" ? "warn" : "success") : "error");
+          appendProOutput(level, `${rsp ? rsp.action : "unknown"}: ${rsp ? rsp.message : "No response"}`);
+          if (rsp) {
+            app.nodes.proActionResponseView.textContent = stringifySafe(rsp);
+            if (rsp.data && rsp.data.snippet) {
+              if ((rsp.data.format || "") === "html") {
+                app.nodes.proEmbedHtmlOutput.value = rsp.data.snippet;
+              }
+              if ((rsp.data.format || "") === "js") {
+                app.nodes.proEmbedJsOutput.value = rsp.data.snippet;
+              }
+              if ((rsp.data.format || "") === "json") {
+                app.nodes.proEmbedJsonOutput.value = rsp.data.snippet;
+              }
+            }
+            if (rsp.data && rsp.data.render) {
+              app.nodes.proRenderPreview.textContent = stringifySafe(rsp.data.render);
+            }
+            if (rsp.data && rsp.data.raw && rsp.data.resolved) {
+              app.nodes.proRenderPreview.textContent = stringifySafe(rsp.data);
+            }
+          }
+        });
+
+        await refreshProPanels();
+      }
+
+      function setExplanationVisibility(show, persist = true) {
+        app.state.settings.showExplanations = Boolean(show);
+        document.body.classList.toggle("hide-explanations", !app.state.settings.showExplanations);
+        updateExplanationMenuLabel();
+        if (persist) {
+          persistState();
+        }
+      }
+
+      function setOnboardingModalVisibility(show) {
+        app.nodes.onboardingModal.classList.toggle("hidden", !show);
+      }
+
+      function applyComplexityMode(mode, persist = true) {
+        const allowed = ["easy", "medium", "hard", "professional"];
+        const level = allowed.includes(mode) ? mode : "medium";
+        app.state.settings.complexityLevel = level;
+
+        document.body.classList.remove("mode-easy", "mode-medium", "mode-hard", "mode-professional");
+        document.body.classList.add(`mode-${level}`);
+        app.nodes.modeBadge.textContent = level;
+        app.nodes.modeNote.textContent = MODE_NOTES[level] || MODE_NOTES.medium;
+
+        app.nodes.modeToolbar.querySelectorAll("[data-mode]").forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.mode === level);
+        });
+
+        const easy = level === "easy";
+        const hard = level === "hard";
+        const professional = level === "professional";
+
+        app.nodes.easyWorkbenchSection.classList.toggle("hidden", !easy);
+        app.nodes.proConsoleSection.classList.toggle("hidden", !professional);
+
+        app.nodes.helpCenterSection.classList.toggle("hidden", professional);
+        app.nodes.settingsSection.classList.toggle("hidden", easy);
+        app.nodes.diagnosticsSection.classList.toggle("hidden", easy && !hard);
+        app.nodes.navigatorSection.classList.toggle("hidden", easy);
+        app.nodes.clientSection.classList.toggle("hidden", easy);
+        app.nodes.logSection.classList.toggle("hidden", easy);
+
+        qs("composerSection").classList.toggle("hidden", easy);
+        qs("scheduledSection").classList.toggle("hidden", easy);
+        qs("queueSection").classList.toggle("hidden", easy);
+        qs("remoteAccessSection").classList.toggle("hidden", false);
+
+        qs("syncGithubBtn").classList.toggle("hidden", easy);
+        qs("startPollingBtn").classList.toggle("hidden", easy);
+        qs("stopPollingBtn").classList.toggle("hidden", easy);
+        qs("refreshQueueBtn").classList.toggle("hidden", false);
+
+        if (professional) {
+          setExplanationVisibility(false, false);
+        }
+        if (easy) {
+          setExplanationVisibility(true, false);
+          showPanel("");
+        }
+        if (hard) {
+          showPanel("diagnostics");
+        }
+
+        if (persist) {
+          persistState();
+        }
+      }
+
+      async function acceptOnboarding() {
+        if (!app.nodes.consentFingerprintInput.checked) {
+          toast("warn", "Fingerprint consent is required to continue with linking and tracking features.");
+          return;
+        }
+
+        app.state.settings.consentFingerprint = true;
+        app.state.settings.onboardingAccepted = true;
+        setOnboardingModalVisibility(false);
+        persistState();
+
+        log("success", "Onboarding accepted with fingerprint consent.");
+
+        if (app.nodes.consentNotificationInput.checked) {
+          await requestPermission();
+          await registerServiceWorker();
+          if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+            toast("info", "Mobile note: background behavior depends on browser policy and install state.");
+            log("info", "Mobile-specific background constraints explained to user.");
+          }
+        } else {
+          toast("warn", "Notification permission was skipped. You can enable it later.");
+        }
+      }
+
+      function declineOnboarding() {
+        app.state.settings.onboardingAccepted = true;
+        app.state.settings.consentFingerprint = false;
+        setOnboardingModalVisibility(false);
+        persistState();
+        log("warn", "Onboarding completed in limited mode without fingerprint consent.");
+        toast("warn", "Limited mode enabled. Linking and tracking-oriented features may be restricted.");
+      }
+
+      function insertProSendTestScript() {
+        app.nodes.proScriptInput.value = [
+          "new;",
+          "name \"johnson\";",
+          "title \"hello\";",
+          "body \"welcome {{user}}\";",
+          "meta user=\"johnson\" campaign=\"welcome\";",
+          "save;",
+          "render;",
+          "send;"
+        ].join("\n");
+      }
+
+      function requestLinkPermissionManual(peerId, alias) {
+        app.nodes.remotePeerIdInput.value = peerId || "";
+        app.nodes.remotePeerAliasInput.value = alias || "";
+        requestLinkPermission();
+      }
+
+      async function sendQuickPayload(payload) {
+        const finalPayload = {
+          id: uid("notif"),
+          title: payload.title || "Notification",
+          body: payload.body || "",
+          targetUrl: payload.targetUrl || "/",
+          icon: payload.icon || "",
+          badge: payload.badge || "",
+          image: payload.image || "",
+          tag: payload.tag || "",
+          actions: Array.isArray(payload.actions) ? payload.actions : [],
+          requireInteraction: Boolean(payload.requireInteraction),
+          silent: Boolean(payload.silent),
+          clientTarget: payload.clientTarget || "all"
+        };
+        return notifyNow(finalPayload, "dsl");
+      }
+
+      async function runProfessionalScript() {
+        const code = app.nodes.proScriptInput.value.trim();
+        if (!code) {
+          toast("warn", "Script area is empty.");
+          return;
+        }
+        try {
+          await runProCommand(code);
+          toast("success", "Console command language executed.");
+        } catch (error) {
+          toast("error", "Professional script failed.");
+          log("error", "Professional script execution failed.", { error: String(error) });
+          appendProOutput("error", String(error));
+        }
+      }
+
+      function buildPanelUrl(panelKey) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("help");
+        url.searchParams.delete("remote");
+        url.searchParams.delete("settings");
+        url.searchParams.delete("diagnostics");
+        url.searchParams.delete("navigator");
+        if (panelKey === "help") {
+          url.searchParams.set("help", "1");
+        }
+        if (panelKey === "remote") {
+          url.searchParams.set("remote", "1");
+        }
+        if (panelKey === "settings") {
+          url.searchParams.set("settings", "1");
+        }
+        if (panelKey === "diagnostics") {
+          url.searchParams.set("diagnostics", "1");
+        }
+        if (panelKey === "navigator") {
+          url.searchParams.set("navigator", "1");
+        }
+        return url.toString();
+      }
+
+      function openPanelInNewWindow(panelKey) {
+        window.open(buildPanelUrl(panelKey), "_blank", "noopener");
+      }
+
+      function renderHelpCenter() {
+        const items = Object.entries(HELP_MAP)
+          .map(([id, info]) => `
+            <article class="help-item">
+              <strong>${escapeHtml(info.title)}</strong>
+              <div>${escapeHtml(info.detail)}</div>
+              <div class="subtle">Changes: ${escapeHtml(info.impact)}</div>
+              <div class="meta">Control: ${escapeHtml(id)}</div>
+            </article>
+          `)
+          .join("");
+        app.nodes.helpList.innerHTML = items || "<p class='subtle'>No help metadata loaded.</p>";
+      }
+
+      function showPanel(panelName) {
+        const panelMap = {
+          help: app.nodes.helpCenterSection,
+          settings: app.nodes.settingsSection,
+          remote: app.nodes.remoteAccessSection,
+          diagnostics: app.nodes.diagnosticsSection,
+          navigator: app.nodes.navigatorSection
+        };
+        Object.values(panelMap).forEach((node) => node.classList.add("hidden"));
+        if (panelMap[panelName]) {
+          panelMap[panelName].classList.remove("hidden");
+        }
+      }
+
+      function navigateTo(target) {
+        if (!target || target === "home") {
+          showPanel("");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          return;
+        }
+
+        if (target === "help" || target === "settings" || target === "remote" || target === "diagnostics" || target === "navigator") {
+          showPanel(target);
+          return;
+        }
+
+        showPanel("");
+        const section = qs(target);
+        if (section) {
+          section.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+
+      function routeToChangelog(updateRouteParam = true) {
+        showPanel("");
+        if (updateRouteParam) {
+          const url = new URL(window.location.href);
+          url.searchParams.set("changelog", "1");
+          window.history.replaceState({}, "", url.toString());
+        }
+        if (app.nodes.changelogSection) {
+          app.nodes.changelogSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+
+      function renderVersionSummary() {
+        const versionState = app.state.runtime.version;
+        app.nodes.versionBadgeBtn.textContent = `v${versionState.localVersion || APP_VERSION}`;
+        app.nodes.latestVersionBadge.textContent = `v${versionState.remoteVersion || APP_VERSION}`;
+        app.nodes.launchBadge.textContent = releaseDateLabel(versionState.remoteLaunchDate || APP_LAUNCH_DATE);
+        app.nodes.changelogVersionBadge.textContent = `v${versionState.remoteVersion || APP_VERSION}`;
+        app.nodes.changelogLaunchDate.textContent = `Launch date: ${releaseDateLabel(versionState.remoteLaunchDate || APP_LAUNCH_DATE)} (${versionState.source || "local"})`;
+        if (app.nodes.changelogRepoLink) {
+          app.nodes.changelogRepoLink.href = versionState.changelogUrl || "./CHANGELOG.md";
+        }
+        const highlights = Array.isArray(versionState.highlights) ? versionState.highlights : [];
+        const categories = Array.isArray(versionState.categories) ? versionState.categories : [];
+        const rows = [];
+        if (categories.length) {
+          rows.push(`<article class="list-item"><strong>Categories:</strong> ${escapeHtml(categories.join(", "))}</article>`);
+        }
+        if (highlights.length) {
+          highlights.forEach((item) => {
+            rows.push(`<article class="list-item">${escapeHtml(item)}</article>`);
+          });
+        }
+        if (!rows.length) {
+          rows.push("<article class='list-item'>No highlights published for this release.</article>");
+        }
+        app.nodes.changelogHighlights.innerHTML = rows.join("");
+      }
+
+      function notifyIfNewerVersion(versionInfo) {
+        const isNewer = compareSemver(versionInfo.version, APP_VERSION) > 0;
+        if (!isNewer) {
+          return;
+        }
+        const lastNotice = localStorage.getItem(VERSION_NOTICE_KEY);
+        if (lastNotice === versionInfo.version) {
+          return;
+        }
+        const launchDateLabel = releaseDateLabel(versionInfo.releaseDate);
+        const message = `New release v${versionInfo.version} (${launchDateLabel}) is available. Click to open changelog.`;
+        toast("info", message, 7000, () => routeToChangelog(true));
+        if ("Notification" in window && Notification.permission === "granted") {
+          try {
+            const alert = new Notification(`GNESTS v${versionInfo.version} available`, {
+              body: `Released ${launchDateLabel}. Click to review changelog.`,
+              tag: `version-${versionInfo.version}`
+            });
+            alert.onclick = () => {
+              window.focus();
+              routeToChangelog(true);
+            };
+          } catch (_error) {
+            // Browser may block constructor in some contexts.
+          }
+        }
+        localStorage.setItem(VERSION_NOTICE_KEY, versionInfo.version);
+      }
+
+      async function refreshVersionInfo() {
+        const result = await fetchVersionInfo();
+        app.state.runtime.version.remoteVersion = result.data.version;
+        app.state.runtime.version.remoteLaunchDate = result.data.releaseDate;
+        app.state.runtime.version.highlights = result.data.highlights;
+        app.state.runtime.version.categories = result.data.categories;
+        app.state.runtime.version.changelogUrl = result.data.changelogUrl;
+        app.state.runtime.version.source = result.source;
+        app.state.runtime.version.checkedAt = nowIso();
+        renderVersionSummary();
+        notifyIfNewerVersion(result.data);
+      }
+
+      function setupSectionDots() {
+        document.querySelectorAll(".section-head").forEach((head) => {
+          const section = head.closest(".section-card");
+          if (!section || !section.id || section.id === "helpCenterSection" || section.id === "settingsSection" || section.id === "remoteAccessSection") {
+            return;
+          }
+          if (head.querySelector(".kebab-btn")) {
+            return;
+          }
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "kebab-btn";
+          btn.textContent = "\u22ef";
+          btn.setAttribute("aria-label", "How this section works");
+          btn.dataset.sectionHelp = section.id;
+          head.appendChild(btn);
+        });
+      }
+
+      function showHoverHelp(controlId, anchor) {
+        const help = HELP_MAP[controlId];
+        if (!help || !anchor) {
+          return;
+        }
+        app.ui.activeHelpControl = controlId;
+        app.nodes.hoverHelp.innerHTML = `
+          <strong>${escapeHtml(help.title)}</strong>
+          <div>${escapeHtml(help.detail)}</div>
+          <div class="subtle">${escapeHtml(help.impact)}</div>
+        `;
+        const rect = anchor.getBoundingClientRect();
+        const top = Math.max(8, rect.top + window.scrollY - 74);
+        const left = Math.min(window.innerWidth - 300, Math.max(8, rect.left + window.scrollX));
+        app.nodes.hoverHelp.style.top = `${top}px`;
+        app.nodes.hoverHelp.style.left = `${left}px`;
+        app.nodes.hoverHelp.classList.remove("hidden");
+      }
+
+      function hideHoverHelp() {
+        app.ui.activeHelpControl = null;
+        app.nodes.hoverHelp.classList.add("hidden");
+      }
+
+      function attachHoverHelp() {
+        Object.keys(HELP_MAP).forEach((id) => {
+          const node = qs(id);
+          if (!node) {
+            return;
+          }
+          node.addEventListener("mouseenter", () => showHoverHelp(id, node));
+          node.addEventListener("focus", () => showHoverHelp(id, node));
+          node.addEventListener("mouseleave", hideHoverHelp);
+          node.addEventListener("blur", hideHoverHelp);
+        });
+      }
+
+      function hydrateSettingsUI() {
+        const cfg = app.state.settings;
+        app.nodes.settingAutoSwInput.value = cfg.autoRegisterSw ? "true" : "false";
+        app.nodes.settingPollingMsInput.value = String(cfg.pollingIntervalMs || 60000);
+        app.nodes.settingGithubEnabledInput.value = cfg.githubSync.enabled ? "true" : "false";
+        app.nodes.settingRelayEnabledInput.value = cfg.relay.enabled ? "true" : "false";
+        app.nodes.settingRelayBaseUrlInput.value = cfg.relay.baseUrl || "";
+        app.nodes.settingRelayVapidInput.value = cfg.relay.vapidPublicKey || "";
+        app.nodes.settingRelayApiKeyInput.value = cfg.relay.apiKey || "";
+        app.nodes.settingGithubOwnerInput.value = cfg.githubSync.owner || "";
+        app.nodes.settingGithubRepoInput.value = cfg.githubSync.repo || "";
+        app.nodes.settingGithubPathInput.value = cfg.githubSync.path || "queue.json";
+        app.nodes.settingGithubBranchInput.value = cfg.githubSync.branch || "main";
+        app.nodes.settingGithubTokenInput.value = cfg.githubSync.token || "";
+        setExplanationVisibility(cfg.showExplanations !== false, false);
+        applyComplexityMode(cfg.complexityLevel || "medium", false);
+      }
+
+      function applySettingsFromUI() {
+        app.state.settings.autoRegisterSw = app.nodes.settingAutoSwInput.value === "true";
+        app.state.settings.pollingIntervalMs = Math.max(5000, Number(app.nodes.settingPollingMsInput.value || 60000));
+        app.state.settings.githubSync.enabled = app.nodes.settingGithubEnabledInput.value === "true";
+        app.state.settings.relay.enabled = app.nodes.settingRelayEnabledInput.value === "true";
+        app.state.settings.relay.baseUrl = app.nodes.settingRelayBaseUrlInput.value.trim();
+        app.state.settings.relay.vapidPublicKey = app.nodes.settingRelayVapidInput.value.trim();
+        app.state.settings.relay.apiKey = app.nodes.settingRelayApiKeyInput.value.trim();
+        app.state.settings.githubSync.owner = app.nodes.settingGithubOwnerInput.value.trim();
+        app.state.settings.githubSync.repo = app.nodes.settingGithubRepoInput.value.trim();
+        app.state.settings.githubSync.path = app.nodes.settingGithubPathInput.value.trim() || "queue.json";
+        app.state.settings.githubSync.branch = app.nodes.settingGithubBranchInput.value.trim() || "main";
+        app.state.settings.githubSync.token = app.nodes.settingGithubTokenInput.value.trim();
+        persistState();
+        toast("success", "Settings saved.");
+        log("success", "Settings updated.", {
+          autoRegisterSw: app.state.settings.autoRegisterSw,
+          pollingIntervalMs: app.state.settings.pollingIntervalMs,
+          githubEnabled: app.state.settings.githubSync.enabled,
+          relayEnabled: app.state.settings.relay.enabled,
+          showExplanations: app.state.settings.showExplanations
+        });
+      }
+
+      function b64ToUint8Array(base64String) {
+        const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+        const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+        const rawData = atob(base64);
+        return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
+      }
+
+      function relayHeaders() {
+        const headers = { "Content-Type": "application/json" };
+        if (app.state.settings.relay.apiKey) {
+          headers.Authorization = `Bearer ${app.state.settings.relay.apiKey}`;
+        }
+        return headers;
+      }
+
+      async function subscribeForRealPush() {
+        if (!app.state.settings.relay.enabled) {
+          toast("warn", "Enable push relay first in settings.");
+          return;
+        }
+        if (!app.state.settings.relay.vapidPublicKey) {
+          toast("warn", "Missing VAPID public key in settings.");
+          return;
+        }
+        if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+          toast("error", "Push API unsupported in this browser.");
+          return;
+        }
+
+        try {
+          const reg = await navigator.serviceWorker.ready;
+          const existing = await reg.pushManager.getSubscription();
+          const subscription = existing || await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: b64ToUint8Array(app.state.settings.relay.vapidPublicKey)
+          });
+
+          app.state.client.pushSubscription = subscription.toJSON();
+          app.state.client.subscriptionStatus = "subscribed";
+          persistState();
+          renderClientProfile();
+          toast("success", "Push subscription created.");
+          log("success", "Push subscription ready.");
+        } catch (error) {
+          toast("error", "Push subscription failed.");
+          log("error", "Push subscription failed.", { error: String(error) });
+        }
+      }
+
+      async function registerDeviceWithRelay() {
+        const relayBase = app.state.settings.relay.baseUrl;
+        if (!app.state.settings.relay.enabled || !relayBase) {
+          toast("warn", "Configure relay base URL and enable relay first.");
+          return;
+        }
+        if (!app.state.client.pushSubscription) {
+          toast("warn", "Create push subscription before relay registration.");
+          return;
+        }
+
+        try {
+          const response = await fetch(`${relayBase.replace(/\/$/, "")}/api/devices/register`, {
+            method: "POST",
+            headers: relayHeaders(),
+            body: JSON.stringify({
+              clientId: app.state.client.id,
+              alias: app.state.client.nickname || app.state.client.id,
+              platform: app.state.client.platform,
+              subscription: app.state.client.pushSubscription
+            })
+          });
+          if (!response.ok) {
+            throw new Error(`Relay register failed: ${response.status}`);
+          }
+          toast("success", "Device registered with relay.");
+          log("success", "Relay device registration complete.");
+        } catch (error) {
+          toast("error", "Relay device registration failed.");
+          log("error", "Relay device registration failed.", { error: String(error) });
+        }
+      }
+
+      async function sendRealRemoteNotification(targetClientId, payload, meta = {}) {
+        const relayBase = app.state.settings.relay.baseUrl;
+        if (!app.state.settings.relay.enabled || !relayBase) {
+          toast("warn", "Relay is not configured. Cannot send real closed-browser remote push.");
+          return false;
+        }
+
+        try {
+          const response = await fetch(`${relayBase.replace(/\/$/, "")}/api/messages/send`, {
+            method: "POST",
+            headers: relayHeaders(),
+            body: JSON.stringify({
+              fromClientId: app.state.client.id,
+              toClientId: targetClientId,
+              payload,
+              meta
+            })
+          });
+          if (!response.ok) {
+            throw new Error(`Relay send failed: ${response.status}`);
+          }
+          log("success", "Real remote notification queued by relay.", { targetClientId });
+          return true;
+        } catch (error) {
+          log("error", "Real remote notification failed.", { error: String(error), targetClientId });
+          return false;
+        }
+      }
+
+      async function sendRemoteNowFromUI() {
+        const targetClientId = app.nodes.remoteSendTargetSelect.value;
+        if (!targetClientId) {
+          toast("warn", "Choose a linked target device first.");
+          return;
+        }
+        const title = app.nodes.remoteSendTitleInput.value.trim() || "Remote test";
+        const body = app.nodes.remoteSendBodyInput.value.trim() || "Remote notification message";
+        const payload = {
+          id: uid("notif"),
+          title,
+          body,
+          targetUrl: `/?remote=1&replyTo=${encodeURIComponent(app.state.client.id)}`,
+          tag: "real-remote",
+          clientTarget: targetClientId,
+          actions: [
+            { title: "Open", action: "open" },
+            { title: "Respond", action: "respond" }
+          ],
+          responseTargetClientId: app.state.client.id
+        };
+
+        const ok = await sendRealRemoteNotification(targetClientId, payload, { mode: "direct" });
+        if (ok) {
+          toast("success", "Real remote notification request sent to relay.");
+        } else {
+          toast("error", "Failed to send real remote notification.");
+        }
+      }
+
+      async function sendResponseMessage() {
+        const targetClientId = app.nodes.responseToClientInput.value.trim();
+        const responseText = app.nodes.responseTextInput.value.trim();
+        const replyToNotificationId = app.nodes.responseToIdInput.value.trim();
+        if (!targetClientId) {
+          toast("warn", "No reply target selected.");
+          return;
+        }
+        if (!responseText) {
+          toast("warn", "Response text is required.");
+          return;
+        }
+
+        const payload = {
+          id: uid("notif"),
+          title: "Notification response",
+          body: responseText,
+          targetUrl: "/?remote=1",
+          tag: "remote-response",
+          clientTarget: targetClientId,
+          actions: [{ title: "Open", action: "open" }],
+          responseToNotificationId: replyToNotificationId,
+          responseFromClientId: app.state.client.id
+        };
+
+        const ok = await sendRealRemoteNotification(targetClientId, payload, { mode: "response" });
+        if (ok) {
+          toast("success", "Response sent via relay.");
+          app.nodes.responseTextInput.value = "";
+        } else {
+          toast("error", "Response send failed.");
+        }
+      }
+
+      function generateRemoteShareLink() {
+        const base = app.nodes.remoteHubBaseInput.value.trim();
+        const topic = app.nodes.remoteTopicInput.value.trim() || "default";
+        if (!base) {
+          toast("warn", "Please provide a shared gateway base URL.");
+          return "";
+        }
+        let normalized;
+        try {
+          normalized = new URL(base).toString().replace(/\/$/, "");
+        } catch (error) {
+          toast("error", "Remote gateway URL is invalid.");
+          return "";
+        }
+
+        const invite = new URL(`${normalized}/join`);
+        invite.searchParams.set("topic", topic);
+        invite.searchParams.set("client", app.state.client.id || "unknown-client");
+        invite.searchParams.set("source", window.location.origin + window.location.pathname);
+        invite.searchParams.set("mode", "remote-opt-in");
+
+        const output = invite.toString();
+        app.nodes.remoteShareLinkOutput.value = output;
+        log("info", "Remote invite link generated.", { topic, output });
+        return output;
+      }
+
+      function buildDeviceLinkRoute() {
+        const url = new URL(window.location.href);
+        url.searchParams.set("remote", "1");
+        url.searchParams.set("connectPeer", app.state.client.id || "unknown-client");
+        url.searchParams.set("connectAlias", app.state.client.nickname || app.state.client.id || "Peer");
+        return url.toString();
+      }
+
+      function generateDeviceQrRoute() {
+        const route = buildDeviceLinkRoute();
+        app.nodes.deviceLinkRouteOutput.value = route;
+        const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(route)}`;
+        app.nodes.deviceLinkQrImg.src = qrSrc;
+        log("info", "Device link QR route generated.", { route });
+        return route;
+      }
+
+      function renderDiagnostics(results) {
+        if (!results.length) {
+          app.nodes.diagnosticList.innerHTML = "<p class='subtle'>No problems detected right now. Keep monitoring if tasks are intermittent.</p>";
+          return;
+        }
+
+        app.nodes.diagnosticList.innerHTML = results.map((result) => `
+          <article class="item-card">
+            <div class="item-head">
+              <strong>${escapeHtml(result.issue)}</strong>
+              <span class="pill">${escapeHtml(result.severity)}</span>
+            </div>
+            <div class="meta">Signal: ${escapeHtml(result.signal)}</div>
+            <div>${escapeHtml(result.impact)}</div>
+            <div class="subtle">Fix: ${escapeHtml(result.fix)}</div>
+          </article>
+        `).join("");
+      }
+
+      function runDiagnosticsScan() {
+        const now = Date.now();
+        const findings = [];
+        const overdueScheduled = app.state.scheduled.filter((item) => item.status === "scheduled" && (now - Number(item.fireAt || now)) > 15000);
+        const staleOutgoingLinks = app.state.linking.outgoingRequests.filter((req) => req.status === "pending" && (now - new Date(req.createdAt).getTime()) > 120000);
+
+        if (app.state.runtime.permission !== "granted") {
+          findings.push({
+            severity: "warn",
+            signal: "permission",
+            issue: "Notification permission is not granted.",
+            impact: "Scheduled and queue tasks may complete logically but cannot display notifications.",
+            fix: "Use Request permission in quick actions and allow notifications in browser site settings."
+          });
+        }
+
+        if (!app.state.runtime.swRegistered) {
+          findings.push({
+            severity: "warn",
+            signal: "service-worker",
+            issue: "Service worker is not registered.",
+            impact: "Background-like notification flow and worker click routing are unavailable.",
+            fix: "Register the service worker and verify sw.js is served from the same origin path."
+          });
+        }
+
+        if (!navigator.onLine) {
+          findings.push({
+            severity: "error",
+            signal: "offline",
+            issue: "Device is offline.",
+            impact: "Queue sync, GitHub sync, relay send, and QR-hosted services can fail while offline.",
+            fix: "Reconnect internet, then run Refresh queue and Run diagnostics scan again."
+          });
+        }
+
+        if (overdueScheduled.length) {
+          findings.push({
+            severity: "warn",
+            signal: "overdue-scheduled",
+            issue: `${overdueScheduled.length} scheduled task(s) are overdue.`,
+            impact: "Tasks may be delayed by background timer throttling, suspended tabs, or missed run windows.",
+            fix: "Keep app tab open for local timers, install as PWA when possible, or move critical delivery to relay push backend."
+          });
+        }
+
+        if (app.state.settings.relay.enabled && (!app.state.settings.relay.baseUrl || !app.state.settings.relay.vapidPublicKey)) {
+          findings.push({
+            severity: "warn",
+            signal: "relay-config",
+            issue: "Relay mode enabled but relay configuration is incomplete.",
+            impact: "Real closed-browser remote notifications cannot be delivered.",
+            fix: "Provide relay base URL and VAPID public key in settings, then subscribe and register device."
+          });
+        }
+
+        if (staleOutgoingLinks.length) {
+          findings.push({
+            severity: "info",
+            signal: "link-sync",
+            issue: `${staleOutgoingLinks.length} link request(s) are still pending.`,
+            impact: "Device sync is incomplete, so targeted remote sends may fail or skip intended peers.",
+            fix: "Share the QR route with peers, ask them to approve in Remote access, then refresh queue or sync."
+          });
+        }
+
+        if (!app.state.linking.linkedDevices.length) {
+          findings.push({
+            severity: "info",
+            signal: "no-linked-devices",
+            issue: "No linked devices found.",
+            impact: "Remote target selectors have no linked peers for direct routing.",
+            fix: "Generate the QR route and scan from another device to start link request flow."
+          });
+        }
+
+        if (!findings.length) {
+          log("success", "Diagnostics scan completed with no active issues.");
+        } else {
+          log("warn", "Diagnostics scan found issues.", { count: findings.length, findings });
+        }
+
+        renderDiagnostics(findings);
+        return findings;
+      }
+
+      function upsertLinkedDevice(device) {
+        if (!device || !device.id) {
+          return;
+        }
+        const existing = app.state.linking.linkedDevices.find((entry) => entry.id === device.id);
+        if (existing) {
+          existing.alias = device.alias || existing.alias || "";
+          existing.status = device.status || existing.status || "visible";
+          existing.lastSeenAt = device.lastSeenAt || nowIso();
+        } else {
+          app.state.linking.linkedDevices.unshift({
+            id: device.id,
+            alias: device.alias || "",
+            status: device.status || "visible",
+            lastSeenAt: device.lastSeenAt || nowIso()
+          });
+        }
+      }
+
+      function queueSignal(signalKind, signalData) {
+        const signalItem = {
+          id: uid("signal"),
+          source: "linking",
+          sourceType: "local",
+          status: "scheduled",
+          signalKind,
+          signalData,
+          payload: {
+            id: uid("notif"),
+            title: `Signal: ${signalKind}`,
+            body: "Device linking signal",
+            targetUrl: "/",
+            icon: "",
+            badge: "",
+            image: "",
+            tag: "device-signal",
+            actions: [],
+            requireInteraction: false,
+            silent: true,
+            clientTarget: "all"
+          },
+          createdAt: nowIso(),
+          timestamp: nowIso(),
+          sendAt: Date.now(),
+          repeat: { enabled: false, everySeconds: 0, remaining: 0 },
+          availableAt: Date.now()
+        };
+        app.state.queue.unshift(signalItem);
+      }
+
+      function requestLinkPermission() {
+        const peerId = app.nodes.remotePeerIdInput.value.trim();
+        const peerAlias = app.nodes.remotePeerAliasInput.value.trim();
+        if (!peerId) {
+          toast("warn", "Peer device ID is required to request linking.");
+          return;
+        }
+        if (peerId === app.state.client.id) {
+          toast("warn", "You cannot request link permission from the same device.");
+          return;
+        }
+
+        const request = {
+          id: uid("req"),
+          fromClientId: app.state.client.id,
+          fromAlias: app.state.client.nickname || app.state.client.id,
+          toClientId: peerId,
+          toAlias: peerAlias,
+          createdAt: nowIso(),
+          status: "pending"
+        };
+
+        app.state.linking.outgoingRequests.unshift(request);
+        queueSignal("link-request", request);
+        persistState();
+        renderLinkingPanels();
+        attemptGitHubSync("link-request");
+        toast("success", "Link permission request queued.");
+        log("info", "Link request created.", { to: peerId });
+      }
+
+      function announcePresence() {
+        queueSignal("presence", {
+          clientId: app.state.client.id,
+          alias: app.state.client.nickname || app.state.client.id,
+          platform: app.state.client.platform,
+          lastSeenAt: nowIso()
+        });
+        persistState();
+        attemptGitHubSync("presence");
+        toast("success", "Presence announcement queued.");
+      }
+
+      function approveIncomingRequest(requestId) {
+        const req = app.state.linking.incomingRequests.find((entry) => entry.id === requestId);
+        if (!req) {
+          return;
+        }
+
+        upsertLinkedDevice({
+          id: req.fromClientId,
+          alias: req.fromAlias,
+          status: "linked",
+          lastSeenAt: nowIso()
+        });
+
+        app.state.linking.incomingRequests = app.state.linking.incomingRequests.filter((entry) => entry.id !== requestId);
+        queueSignal("link-accept", {
+          requestId,
+          fromClientId: app.state.client.id,
+          fromAlias: app.state.client.nickname || app.state.client.id,
+          toClientId: req.fromClientId,
+          approvedAt: nowIso()
+        });
+
+        persistState();
+        refreshClientSelects();
+        renderLinkingPanels();
+        attemptGitHubSync("link-accept");
+        toast("success", "Link request approved.");
+      }
+
+      function renderLinkingPanels() {
+        app.nodes.remoteLocalClientIdInput.value = app.state.client.id || "";
+
+        if (!app.state.linking.incomingRequests.length) {
+          app.nodes.incomingRequestsList.innerHTML = "<p class='subtle'>No incoming link requests.</p>";
+        } else {
+          app.nodes.incomingRequestsList.innerHTML = app.state.linking.incomingRequests.map((req) => `
+            <article class="item-card">
+              <div><strong>${escapeHtml(req.fromAlias || req.fromClientId)}</strong></div>
+              <div class="meta">from: ${escapeHtml(req.fromClientId)}</div>
+              <div class="meta">at: ${escapeHtml(new Date(req.createdAt).toLocaleString())}</div>
+              <div class="button-row">
+                <button class="secondary" data-action="approve-link" data-id="${req.id}">Approve link</button>
+              </div>
+            </article>
+          `).join("");
+        }
+
+        if (!app.state.linking.linkedDevices.length) {
+          app.nodes.linkedDevicesList.innerHTML = "<p class='subtle'>No linked devices yet.</p>";
+        } else {
+          app.nodes.linkedDevicesList.innerHTML = app.state.linking.linkedDevices.map((device) => `
+            <article class="item-card">
+              <div><strong>${escapeHtml(device.alias || device.id)}</strong></div>
+              <div class="meta">id: ${escapeHtml(device.id)}</div>
+              <div class="meta">status: ${escapeHtml(device.status || "visible")}</div>
+              <div class="meta">last seen: ${escapeHtml(new Date(device.lastSeenAt).toLocaleString())}</div>
+            </article>
+          `).join("");
+        }
+
+        const remoteOptions = ["<option value=''>Select linked device</option>"];
+        app.state.linking.linkedDevices.forEach((device) => {
+          if ((device.status || "").toLowerCase() === "linked") {
+            remoteOptions.push(`<option value="${escapeHtml(device.id)}">${escapeHtml(device.alias || device.id)}</option>`);
+          }
+        });
+        app.nodes.remoteSendTargetSelect.innerHTML = remoteOptions.join("");
+      }
+
+      function processLinkSignal(item) {
+        if (!item.signalKind || !item.signalData) {
+          return false;
+        }
+
+        const data = item.signalData;
+        if (item.signalKind === "presence") {
+          if (data.clientId && data.clientId !== app.state.client.id) {
+            upsertLinkedDevice({
+              id: data.clientId,
+              alias: data.alias || data.clientId,
+              status: "visible",
+              lastSeenAt: data.lastSeenAt || nowIso()
+            });
+          }
+          return true;
+        }
+
+        if (item.signalKind === "link-request") {
+          if (data.toClientId === app.state.client.id && data.fromClientId !== app.state.client.id) {
+            const exists = app.state.linking.incomingRequests.some((entry) => entry.id === data.id);
+            if (!exists) {
+              app.state.linking.incomingRequests.unshift({
+                id: data.id,
+                fromClientId: data.fromClientId,
+                fromAlias: data.fromAlias,
+                toClientId: data.toClientId,
+                createdAt: data.createdAt || nowIso(),
+                status: "pending"
+              });
+              log("info", "Incoming link request received.", { from: data.fromClientId });
+            }
+          }
+          return true;
+        }
+
+        if (item.signalKind === "link-accept") {
+          if (data.toClientId === app.state.client.id && data.fromClientId !== app.state.client.id) {
+            upsertLinkedDevice({
+              id: data.fromClientId,
+              alias: data.fromAlias,
+              status: "linked",
+              lastSeenAt: data.approvedAt || nowIso()
+            });
+            app.state.linking.outgoingRequests = app.state.linking.outgoingRequests.map((req) => {
+              if (req.id === data.requestId) {
+                return { ...req, status: "approved" };
+              }
+              return req;
+            });
+            log("success", "Link request approved by peer.", { peer: data.fromClientId });
+          }
+          return true;
+        }
+
+        return false;
+      }
+
+      function updateStatusBadges() {
+        app.nodes.envBadge.textContent = app.state.runtime.swRegistered ? "real-push-ready" : "static-only";
+        app.nodes.swBadge.textContent = app.state.runtime.swRegistered ? "registered" : "not-registered";
+        app.nodes.permBadge.textContent = app.state.runtime.permission;
+        app.nodes.syncModeBadge.textContent = app.state.runtime.syncMode;
+        app.nodes.capabilityBadge.textContent = app.state.runtime.capabilityLabel;
+        app.nodes.syncBadge.textContent = tsLabel(app.state.runtime.lastSyncAt);
+        app.nodes.modeBadge.textContent = app.state.settings.complexityLevel || "medium";
+        renderVersionSummary();
+      }
+
+      function detectCapabilities() {
+        const swOk = "serviceWorker" in navigator;
+        const notifOk = "Notification" in window;
+        const standalone = window.matchMedia("(display-mode: standalone)").matches || Boolean(window.navigator.standalone);
+        const backgroundLikely = swOk && notifOk;
+        app.state.runtime.capabilityLabel = `${backgroundLikely ? "bg-ok" : "bg-limited"}/${standalone ? "installed" : "browser"}`;
+      }
+
+      function getPermissionState() {
+        if (!("Notification" in window)) {
+          return "unsupported";
+        }
+        return Notification.permission;
+      }
+
+      async function requestPermission() {
+        if (!("Notification" in window)) {
+          toast("error", "Notifications are unsupported in this browser.");
+          log("error", "Notification API unsupported.");
+          return;
+        }
+        try {
+          const result = await Notification.requestPermission();
+          app.state.runtime.permission = result;
+          updateStatusBadges();
+          persistState();
+          if (result === "granted") {
+            toast("success", "Notification permission granted.");
+            log("success", "Permission granted.");
+          } else if (result === "denied") {
+            toast("warn", "Permission denied. You can change this in browser settings.");
+            log("warn", "Permission denied.");
+          } else {
+            toast("info", "Permission request dismissed.");
+            log("info", "Permission left in default state.");
+          }
+        } catch (error) {
+          toast("error", "Permission request failed.");
+          log("error", "Permission request failed.", { error: String(error) });
+        }
+      }
+
+      async function registerServiceWorker() {
+        if (!("serviceWorker" in navigator)) {
+          toast("error", "Service worker is not available in this browser.");
+          log("error", "Service worker API unavailable.");
+          return;
+        }
+        try {
+          await navigator.serviceWorker.register("./sw.js");
+          await navigator.serviceWorker.ready;
+          app.state.runtime.swRegistered = true;
+          updateStatusBadges();
+          persistState();
+          toast("success", "Service worker registered at ./sw.js");
+          log("success", "Service worker registered.");
+        } catch (error) {
+          app.state.runtime.swRegistered = false;
+          updateStatusBadges();
+          toast("error", "Service worker registration failed.");
+          log("error", "Service worker registration failed.", { error: String(error) });
+        }
+      }
+
+      function hydrateDraftFromInputs() {
+        app.state.draft.title = app.nodes.titleInput.value.trim();
+        app.state.draft.body = app.nodes.bodyInput.value.trim();
+        app.state.draft.targetUrl = app.nodes.targetUrlInput.value.trim() || "/";
+        app.state.draft.iconUrl = app.nodes.iconUrlInput.value.trim();
+        app.state.draft.badgeUrl = app.nodes.badgeUrlInput.value.trim();
+        app.state.draft.imageUrl = app.nodes.imageUrlInput.value.trim();
+        app.state.draft.tag = app.nodes.tagInput.value.trim();
+        app.state.draft.actionsRaw = app.nodes.actionsInput.value.trim();
+        app.state.draft.clientTarget = app.nodes.clientTargetInput.value;
+        app.state.draft.delaySeconds = Number(app.nodes.delayInput.value || 0);
+        app.state.draft.repeatEverySeconds = Number(app.nodes.repeatEveryInput.value || 0);
+        app.state.draft.repeatCount = Number(app.nodes.repeatCountInput.value || 0);
+        app.state.draft.requireInteraction = app.nodes.requireInteractionInput.value === "true";
+        app.state.draft.silent = app.nodes.silentInput.value === "true";
+        app.state.draft.scheduledAt = app.nodes.scheduleAtInput.value;
+      }
+
+      function fillComposerFromState() {
+        app.nodes.titleInput.value = app.state.draft.title || "";
+        app.nodes.bodyInput.value = app.state.draft.body || "";
+        app.nodes.targetUrlInput.value = app.state.draft.targetUrl || "/";
+        app.nodes.iconUrlInput.value = app.state.draft.iconUrl || "";
+        app.nodes.badgeUrlInput.value = app.state.draft.badgeUrl || "";
+        app.nodes.imageUrlInput.value = app.state.draft.imageUrl || "";
+        app.nodes.tagInput.value = app.state.draft.tag || "";
+        app.nodes.actionsInput.value = app.state.draft.actionsRaw || "";
+        app.nodes.clientTargetInput.value = app.state.draft.clientTarget || "all";
+        app.nodes.delayInput.value = Number.isFinite(app.state.draft.delaySeconds) ? String(app.state.draft.delaySeconds) : "0";
+        app.nodes.repeatEveryInput.value = Number.isFinite(app.state.draft.repeatEverySeconds) ? String(app.state.draft.repeatEverySeconds) : "0";
+        app.nodes.repeatCountInput.value = Number.isFinite(app.state.draft.repeatCount) ? String(app.state.draft.repeatCount) : "0";
+        app.nodes.requireInteractionInput.value = app.state.draft.requireInteraction ? "true" : "false";
+        app.nodes.silentInput.value = app.state.draft.silent ? "true" : "false";
+        app.nodes.scheduleAtInput.value = app.state.draft.scheduledAt || "";
+      }
+
+      function clearComposer() {
+        app.state.draft = {
+          title: "",
+          body: "",
+          targetUrl: "/",
+          iconUrl: "",
+          badgeUrl: "",
+          imageUrl: "",
+          tag: "",
+          actionsRaw: "",
+          clientTarget: "all",
+          delaySeconds: 0,
+          repeatEverySeconds: 0,
+          repeatCount: 0,
+          requireInteraction: false,
+          silent: false,
+          source: "local-ui",
+          status: "draft",
+          scheduledAt: ""
+        };
+        fillComposerFromState();
+        app.nodes.composerError.textContent = "";
+        persistState();
+      }
+
+      function validateDraft(requireSchedule) {
+        const d = app.state.draft;
+        if (!d.title) {
+          return "Title is required.";
+        }
+        if (!d.body) {
+          return "Message body is required.";
+        }
+        if (d.delaySeconds < 0) {
+          return "Delay cannot be negative.";
+        }
+        if (d.repeatEverySeconds < 0 || d.repeatCount < 0) {
+          return "Repeat fields cannot be negative.";
+        }
+        if (d.repeatCount > 0 && d.repeatEverySeconds <= 0) {
+          return "Repeat every must be greater than 0 when repeat count is set.";
+        }
+        if (requireSchedule) {
+          const at = resolveScheduleTime(d.delaySeconds, d.scheduledAt);
+          if (!at || at <= Date.now()) {
+            return "Scheduled time must be in the future.";
+          }
+        }
+        return "";
+      }
+
+      function resolveScheduleTime(delaySeconds, scheduledAt) {
+        if (scheduledAt) {
+          const parsed = new Date(scheduledAt).getTime();
+          if (Number.isFinite(parsed)) {
+            return parsed;
+          }
+        }
+        const plusDelay = Date.now() + Math.max(0, Number(delaySeconds) || 0) * 1000;
+        return plusDelay;
+      }
+
+      function parseActions(raw) {
+        if (!raw) {
+          return [];
+        }
+        return raw
+          .split(",")
+          .map((part) => part.trim())
+          .filter(Boolean)
+          .slice(0, 2)
+          .map((entry, idx) => {
+            const [titlePart, actionPart] = entry.split(":").map((s) => s.trim());
+            return {
+              title: titlePart || `Action ${idx + 1}`,
+              action: actionPart || (titlePart || `action-${idx + 1}`).toLowerCase().replace(/\s+/g, "-")
+            };
+          });
+      }
+
+      function buildNotificationPayload(base) {
+        return {
+          id: uid("notif"),
+          title: base.title,
+          body: base.body,
+          targetUrl: base.targetUrl || "/",
+          icon: base.iconUrl || "",
+          badge: base.badgeUrl || "",
+          image: base.imageUrl || "",
+          tag: base.tag || "",
+          actions: parseActions(base.actionsRaw),
+          requireInteraction: Boolean(base.requireInteraction),
+          silent: Boolean(base.silent),
+          clientTarget: base.clientTarget || "all"
+        };
+      }
+
+      async function attemptGitHubSync(reason) {
+        const cfg = app.state.settings.githubSync;
+        if (!cfg.enabled) {
+          app.state.runtime.syncMode = "local";
+          updateStatusBadges();
+          return;
+        }
+
+        if (!cfg.owner || !cfg.repo || !cfg.path || !cfg.token) {
+          toast("warn", "GitHub sync enabled but config is incomplete.");
+          log("warn", "GitHub sync skipped: missing config.");
+          app.state.runtime.syncMode = "github-config-missing";
+          updateStatusBadges();
+          return;
+        }
+
+        const payload = JSON.stringify({ items: app.state.queue }, null, 2);
+        const apiUrl = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${cfg.path}`;
+        try {
+          const existing = await fetch(apiUrl, {
+            headers: {
+              Authorization: `Bearer ${cfg.token}`,
+              Accept: "application/vnd.github+json"
+            }
+          });
+          let sha = "";
+          if (existing.ok) {
+            const body = await existing.json();
+            sha = body.sha || "";
+          }
+
+          const encoded = btoa(unescape(encodeURIComponent(payload)));
+          const writeResponse = await fetch(apiUrl, {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${cfg.token}`,
+              Accept: "application/vnd.github+json",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              message: `GNESTS sync: ${reason}`,
+              content: encoded,
+              sha,
+              branch: cfg.branch || "main"
+            })
+          });
+
+          if (!writeResponse.ok) {
+            throw new Error(`GitHub sync failed with ${writeResponse.status}`);
+          }
+
+          app.state.runtime.syncMode = "github";
+          app.state.runtime.lastSyncAt = nowIso();
+          updateStatusBadges();
+          persistState();
+          toast("success", "GitHub sync success.");
+          log("success", "GitHub sync success.", { reason });
+        } catch (error) {
+          app.state.runtime.syncMode = "github-failed";
+          updateStatusBadges();
+          toast("error", "GitHub sync failure.");
+          log("error", "GitHub sync failure.", { error: String(error), reason });
+        }
+      }
+
+      async function notifyNow(payload, origin) {
+        if (app.state.runtime.permission !== "granted") {
+          toast("warn", "Permission is not granted.");
+          log("warn", "Notification blocked because permission is not granted.");
+          return false;
+        }
+        if (payload.clientTarget !== "all" && payload.clientTarget !== app.state.client.id) {
+          log("info", "Notification skipped because client target does not match this device.", {
+            target: payload.clientTarget,
+            clientId: app.state.client.id
+          });
+          return false;
+        }
+
+        try {
+          // Prefer service worker display to support background-capable behavior.
+          if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({
+              type: "SHOW_NOTIFICATION",
+              payload
+            });
+          } else if (navigator.serviceWorker) {
+            const reg = await navigator.serviceWorker.getRegistration();
+            if (reg) {
+              await reg.showNotification(payload.title, {
+                body: payload.body,
+                icon: payload.icon || undefined,
+                badge: payload.badge || undefined,
+                tag: payload.tag || undefined,
+                data: {
+                  targetUrl: payload.targetUrl || "/"
+                }
+              });
+            } else {
+              new Notification(payload.title, { body: payload.body });
+            }
+          } else {
+            new Notification(payload.title, { body: payload.body });
+          }
+          toast("success", `Notification sent: ${payload.title}`);
+          log("success", "Notification delivered.", { origin, title: payload.title });
+          return true;
+        } catch (error) {
+          toast("error", "Notification dispatch failed.");
+          log("error", "Notification dispatch failed.", { error: String(error), origin });
+          return false;
+        }
+      }
+
+      function createScheduledItem() {
+        const fireAt = resolveScheduleTime(app.state.draft.delaySeconds, app.state.draft.scheduledAt);
+        return {
+          id: uid("sched"),
+          source: app.state.draft.source || "local-ui",
+          payload: buildNotificationPayload(app.state.draft),
+          createdAt: nowIso(),
+          timestamp: nowIso(),
+          sendAt: fireAt,
+          fireAt,
+          status: "scheduled",
+          repeat: {
+            enabled: app.state.draft.repeatCount > 0 && app.state.draft.repeatEverySeconds > 0,
+            everySeconds: Math.max(0, app.state.draft.repeatEverySeconds),
+            remaining: Math.max(0, app.state.draft.repeatCount)
+          },
+          pausedAt: null,
+          remainingMs: null
+        };
+      }
+
+      function scheduleTimer(itemId) {
+        const item = app.state.scheduled.find((x) => x.id === itemId);
+        if (!item || item.status !== "scheduled") {
+          return;
+        }
+
+        const ms = Math.max(0, item.fireAt - Date.now());
+        const existing = app.timers.get(itemId);
+        if (existing) {
+          window.clearTimeout(existing);
+        }
+
+        const timerId = window.setTimeout(async () => {
+          const current = app.state.scheduled.find((x) => x.id === itemId);
+          if (!current || current.status !== "scheduled") {
+            return;
+          }
+          const driftMs = Date.now() - Number(current.fireAt || Date.now());
+          if (driftMs > 15000) {
+            log("warn", "Scheduled task executed late. Possible background throttling or suspended tab.", {
+              id: itemId,
+              driftMs,
+              fix: "Keep app active for local timers or use relay push backend for critical timing."
+            });
+          }
+          const ok = await notifyNow(current.payload, "scheduled");
+          if (ok && current.repeat && current.repeat.enabled && current.repeat.remaining > 0) {
+            current.repeat.remaining -= 1;
+            current.fireAt = Date.now() + (current.repeat.everySeconds * 1000);
+            current.sendAt = current.fireAt;
+            current.status = "scheduled";
+            scheduleTimer(itemId);
+          } else {
+            current.status = ok ? "sent" : "failed";
+            current.completedAt = nowIso();
+            app.timers.delete(itemId);
+          }
+          persistState();
+          renderScheduledList();
+        }, ms);
+
+        app.timers.set(itemId, timerId);
+      }
+
+      function restoreAllTimers() {
+        app.state.scheduled.forEach((item) => {
+          if (item.status === "scheduled") {
+            scheduleTimer(item.id);
+          }
+        });
+      }
+
+      function addScheduledFromDraft() {
+        hydrateDraftFromInputs();
+        const error = validateDraft(true);
+        app.nodes.composerError.textContent = error;
+        if (error) {
+          toast("warn", error);
+          return;
+        }
+
+        const item = createScheduledItem();
+        app.state.scheduled.unshift(item);
+        scheduleTimer(item.id);
+        persistState();
+        renderScheduledList();
+        toast("success", "Scheduled item created.");
+        log("success", "Scheduled notification created.", { id: item.id, fireAt: item.fireAt });
+        attemptGitHubSync("schedule-local");
+      }
+
+      function addQueueFromDraft(sourceType) {
+        hydrateDraftFromInputs();
+        const error = validateDraft(false);
+        app.nodes.composerError.textContent = error;
+        if (error) {
+          toast("warn", error);
+          return;
+        }
+
+        const item = {
+          id: uid("queue"),
+          payload: buildNotificationPayload(app.state.draft),
+          source: app.state.draft.source || "local-ui",
+          sourceType,
+          status: "scheduled",
+          createdAt: nowIso(),
+          timestamp: nowIso(),
+          sendAt: resolveScheduleTime(app.state.draft.delaySeconds, app.state.draft.scheduledAt),
+          repeat: {
+            enabled: app.state.draft.repeatCount > 0 && app.state.draft.repeatEverySeconds > 0,
+            everySeconds: Math.max(0, app.state.draft.repeatEverySeconds),
+            remaining: Math.max(0, app.state.draft.repeatCount)
+          },
+          availableAt: resolveScheduleTime(app.state.draft.delaySeconds, app.state.draft.scheduledAt)
+        };
+
+        app.state.queue.unshift(item);
+        persistState();
+        renderQueueList();
+        toast("success", "Queue item added.");
+        log("success", "Queue item created.", { id: item.id, sourceType });
+        attemptGitHubSync("queue-add");
+      }
+
+      async function sendInstantFromDraft() {
+        hydrateDraftFromInputs();
+        const error = validateDraft(false);
+        app.nodes.composerError.textContent = error;
+        if (error) {
+          toast("warn", error);
+          return;
+        }
+        await notifyNow(buildNotificationPayload(app.state.draft), "instant");
+      }
+
+      function scheduleCountdownLabel(item) {
+        if (item.status !== "scheduled") {
+          return item.status;
+        }
+        const remaining = item.fireAt - Date.now();
+        if (remaining <= 0) {
+          return "due now";
+        }
+        const seconds = Math.ceil(remaining / 1000);
+        const min = Math.floor(seconds / 60);
+        const sec = seconds % 60;
+        return `${min}m ${sec}s`;
+      }
+
+      function renderScheduledList() {
+        const list = app.nodes.scheduledList;
+        if (!app.state.scheduled.length) {
+          list.innerHTML = "<p class='subtle'>No scheduled items yet.</p>";
+          app.nodes.scheduledSummary.textContent = "0 pending";
+          return;
+        }
+
+        let pendingCount = 0;
+        const html = app.state.scheduled.map((item) => {
+          if (item.status === "scheduled") {
+            pendingCount += 1;
+          }
+          return `
+            <article class="item-card">
+              <div class="item-head">
+                <div>
+                  <strong>${escapeHtml(item.payload.title)}</strong>
+                  <div class="meta">${escapeHtml(item.payload.body)}</div>
+                </div>
+                <span class="pill">${escapeHtml(scheduleCountdownLabel(item))}</span>
+              </div>
+              <div class="tag-row">
+                <span class="pill">target: ${escapeHtml(item.payload.clientTarget)}</span>
+                <span class="pill">tag: ${escapeHtml(item.payload.tag || "none")}</span>
+                <span class="pill">at: ${escapeHtml(new Date(item.fireAt).toLocaleString())}</span>
+                <span class="pill">status: ${escapeHtml(item.status)}</span>
+                <span class="pill">repeat: ${escapeHtml(item.repeat && item.repeat.enabled ? `${item.repeat.everySeconds}s x ${item.repeat.remaining}` : "none")}</span>
+              </div>
+              <div class="button-row">
+                <button class="secondary" data-action="edit-scheduled" data-id="${item.id}">Edit</button>
+                <button class="secondary" data-action="pause-scheduled" data-id="${item.id}">Pause</button>
+                <button class="secondary" data-action="resume-scheduled" data-id="${item.id}">Resume</button>
+                <button class="warn" data-action="cancel-scheduled" data-id="${item.id}">Cancel</button>
+                <button class="danger" data-action="delete-scheduled" data-id="${item.id}">Delete</button>
+                <button class="secondary" data-action="duplicate-scheduled" data-id="${item.id}">Duplicate</button>
+              </div>
+            </article>
+          `;
+        }).join("");
+
+        list.innerHTML = html;
+        app.nodes.scheduledSummary.textContent = `${pendingCount} pending`;
+      }
+
+      function queueMatchesFilters(item) {
+        const statusFilter = app.nodes.queueStatusFilter.value;
+        const typeFilter = app.nodes.queueTypeFilter.value;
+        const clientFilter = app.nodes.queueClientFilter.value;
+
+        if (statusFilter !== "all" && item.status !== statusFilter) {
+          return false;
+        }
+        if (typeFilter !== "all" && item.sourceType !== typeFilter) {
+          return false;
+        }
+        if (clientFilter !== "all" && item.payload.clientTarget !== clientFilter) {
+          return false;
+        }
+        return true;
+      }
+
+      function renderQueueList() {
+        const merged = [...app.state.queue];
+        const filtered = merged.filter(queueMatchesFilters);
+
+        if (!filtered.length) {
+          app.nodes.queueList.innerHTML = "<p class='subtle'>No queue items for selected filters.</p>";
+          return;
+        }
+
+        app.nodes.queueList.innerHTML = filtered.map((item) => `
+          <article class="item-card">
+            <div class="item-head">
+              <div>
+                <strong>${escapeHtml(item.payload.title)}</strong>
+                <div class="meta">${escapeHtml(item.payload.body)}</div>
+              </div>
+              <span class="pill">${escapeHtml(item.status)}</span>
+            </div>
+            <div class="tag-row">
+              <span class="pill">source: ${escapeHtml(item.sourceType)}</span>
+              <span class="pill">target: ${escapeHtml(item.payload.clientTarget)}</span>
+              <span class="pill">available: ${escapeHtml(new Date(item.availableAt).toLocaleString())}</span>
+            </div>
+            <div class="button-row">
+              <button data-action="publish-queue" data-id="${item.id}">Publish now</button>
+              <button class="secondary" data-action="edit-queue" data-id="${item.id}">Edit</button>
+              <button class="secondary" data-action="reschedule-queue" data-id="${item.id}">Reschedule</button>
+              <button class="danger" data-action="remove-queue" data-id="${item.id}">Remove</button>
+            </div>
+          </article>
+        `).join("");
+      }
+
+      function renderLogs() {
+        if (!app.state.logs.length) {
+          app.nodes.logList.innerHTML = "<p class='subtle'>No log entries yet.</p>";
+          return;
+        }
+        app.nodes.logList.innerHTML = app.state.logs.map((entry) => `
+          <div class="log-entry ${escapeHtml(entry.level)}">
+            <div><strong>${escapeHtml(entry.level.toUpperCase())}</strong> ${escapeHtml(new Date(entry.timestamp).toLocaleTimeString())}</div>
+            <div>${escapeHtml(entry.message)}</div>
+          </div>
+        `).join("");
+      }
+
+      function renderClientProfile() {
+        app.nodes.clientIdInput.value = app.state.client.id;
+        app.nodes.nicknameInput.value = app.state.client.nickname;
+        app.nodes.subscriptionStatusInput.value = app.state.client.subscriptionStatus;
+        app.nodes.platformInfo.textContent = `Platform: ${app.state.client.platform}`;
+      }
+
+      function refreshClientSelects() {
+        const options = [
+          `<option value="all">All clients</option>`,
+          `<option value="${escapeHtml(app.state.client.id)}">${escapeHtml(app.state.client.id)} (this device)</option>`
+        ];
+        app.state.linking.linkedDevices.forEach((device) => {
+          options.push(`<option value="${escapeHtml(device.id)}">${escapeHtml((device.alias || device.id) + " (linked)")}</option>`);
+        });
+        app.nodes.clientTargetInput.innerHTML = options.join("");
+        app.nodes.queueClientFilter.innerHTML = options.join("");
+        if (app.state.draft.clientTarget !== "all") {
+          app.nodes.clientTargetInput.value = app.state.draft.clientTarget;
+        }
+      }
+
+      function saveClientProfile() {
+        const nickname = app.nodes.nicknameInput.value.trim();
+        app.state.client.nickname = nickname;
+        persistState();
+        toast("success", "Client profile saved.");
+        log("success", "Client profile updated.", { nickname });
+      }
+
+      function exportLogs() {
+        const payload = JSON.stringify(app.state.logs, null, 2);
+        const blob = new Blob([payload], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `notification-lab-logs-${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      async function fetchPublicQueue() {
+        try {
+          const response = await fetch(app.state.settings.queueUrl, { cache: "no-store" });
+          if (!response.ok) {
+            throw new Error(`Queue fetch failed: ${response.status}`);
+          }
+          const data = await response.json();
+          const items = Array.isArray(data.items) ? data.items : [];
+          let added = 0;
+
+          items.forEach((raw) => {
+            const id = String(raw.id || uid("public"));
+            if (app.state.processedQueueIds.includes(id)) {
+              return;
+            }
+            const payload = {
+              id,
+              title: String(raw.title || "Queue notification"),
+              body: String(raw.body || ""),
+              targetUrl: String(raw.targetUrl || "/"),
+              icon: String(raw.icon || ""),
+              badge: String(raw.badge || ""),
+              image: String(raw.image || ""),
+              tag: String(raw.tag || ""),
+              actions: Array.isArray(raw.actions) ? raw.actions : [],
+              requireInteraction: Boolean(raw.requireInteraction),
+              silent: Boolean(raw.silent),
+              clientTarget: String(raw.clientTarget || "all")
+            };
+            app.state.queue.unshift({
+              id,
+              payload,
+              source: String(raw.source || "queue.json"),
+              sourceType: "public",
+              status: String(raw.status || "scheduled"),
+              createdAt: nowIso(),
+              timestamp: String(raw.timestamp || nowIso()),
+              sendAt: Number(raw.sendAt) || Date.now(),
+              repeat: raw.repeat && typeof raw.repeat === "object" ? raw.repeat : { enabled: false, everySeconds: 0, remaining: 0 },
+              availableAt: Number(raw.availableAt) || Date.now()
+            });
+            added += 1;
+          });
+
+          app.state.runtime.lastSyncAt = nowIso();
+          persistState();
+          updateStatusBadges();
+          renderQueueList();
+          if (added) {
+            toast("success", `Queue synced with ${added} new items.`);
+            log("success", "Public queue sync added new items.", { added });
+          } else {
+            toast("info", "Queue synced with no new items.");
+            log("info", "Public queue sync found no new items.");
+          }
+        } catch (error) {
+          toast("error", "Queue sync failed.");
+          log("error", "Queue sync failed.", { error: String(error) });
+        }
+      }
+
+      async function processQueueEligibility() {
+        const now = Date.now();
+        const candidates = app.state.queue.filter((item) => (item.status === "queued" || item.status === "scheduled") && item.availableAt <= now);
+        for (const item of candidates) {
+          if (processLinkSignal(item)) {
+            item.status = "sent";
+            app.state.processedQueueIds.push(item.id);
+            continue;
+          }
+          const ok = await notifyNow(item.payload, "queue");
+          item.status = ok ? "sent" : "failed";
+          if (ok) {
+            app.state.processedQueueIds.push(item.id);
+          }
+        }
+        persistState();
+        refreshClientSelects();
+        renderLinkingPanels();
+        renderQueueList();
+      }
+
+      function startPolling() {
+        if (app.pollingTimer) {
+          toast("info", "Polling is already running.");
+          return;
+        }
+        app.state.settings.pollingEnabled = true;
+        persistState();
+        app.pollingTimer = window.setInterval(async () => {
+          await fetchPublicQueue();
+          await processQueueEligibility();
+        }, app.state.settings.pollingIntervalMs);
+        toast("success", "Polling started.");
+        log("success", "Polling enabled.", { everyMs: app.state.settings.pollingIntervalMs });
+      }
+
+      function stopPolling() {
+        if (app.pollingTimer) {
+          window.clearInterval(app.pollingTimer);
+          app.pollingTimer = null;
+        }
+        app.state.settings.pollingEnabled = false;
+        persistState();
+        toast("info", "Polling stopped.");
+        log("info", "Polling disabled.");
+      }
+
+      function handleScheduledAction(action, id) {
+        const item = app.state.scheduled.find((x) => x.id === id);
+        if (!item) {
+          return;
+        }
+
+        if (action === "delete-scheduled") {
+          const timerId = app.timers.get(id);
+          if (timerId) {
+            window.clearTimeout(timerId);
+            app.timers.delete(id);
+          }
+          app.state.scheduled = app.state.scheduled.filter((x) => x.id !== id);
+          persistState();
+          renderScheduledList();
+          log("info", "Scheduled item deleted.", { id });
+          return;
+        }
+
+        if (action === "cancel-scheduled") {
+          const timerId = app.timers.get(id);
+          if (timerId) {
+            window.clearTimeout(timerId);
+            app.timers.delete(id);
+          }
+          item.status = "cancelled";
+          persistState();
+          renderScheduledList();
+          log("warn", "Scheduled item cancelled.", { id });
+          return;
+        }
+
+        if (action === "pause-scheduled" && item.status === "scheduled") {
+          const timerId = app.timers.get(id);
+          if (timerId) {
+            window.clearTimeout(timerId);
+            app.timers.delete(id);
+          }
+          item.remainingMs = Math.max(0, item.fireAt - Date.now());
+          item.pausedAt = Date.now();
+          item.status = "paused";
+          persistState();
+          renderScheduledList();
+          log("info", "Scheduled item paused.", { id });
+          return;
+        }
+
+        if (action === "resume-scheduled" && item.status === "paused") {
+          item.fireAt = Date.now() + Math.max(0, item.remainingMs || 0);
+          item.status = "scheduled";
+          item.pausedAt = null;
+          item.remainingMs = null;
+          scheduleTimer(id);
+          persistState();
+          renderScheduledList();
+          log("info", "Scheduled item resumed.", { id });
+          return;
+        }
+
+        if (action === "duplicate-scheduled") {
+          const copy = {
+            ...item,
+            id: uid("sched"),
+            createdAt: nowIso(),
+            fireAt: Date.now() + 30000,
+            status: "scheduled",
+            pausedAt: null,
+            remainingMs: null
+          };
+          app.state.scheduled.unshift(copy);
+          scheduleTimer(copy.id);
+          persistState();
+          renderScheduledList();
+          log("success", "Scheduled item duplicated with 30s delay.", { id: copy.id });
+          return;
+        }
+
+        if (action === "edit-scheduled") {
+          app.state.draft = {
+            title: item.payload.title,
+            body: item.payload.body,
+            targetUrl: item.payload.targetUrl,
+            iconUrl: item.payload.icon,
+            badgeUrl: item.payload.badge,
+            imageUrl: item.payload.image,
+            tag: item.payload.tag,
+            actionsRaw: Array.isArray(item.payload.actions) ? item.payload.actions.map((a) => `${a.title}:${a.action}`).join(", ") : "",
+            clientTarget: item.payload.clientTarget,
+            delaySeconds: 0,
+            repeatEverySeconds: item.repeat && item.repeat.enabled ? Number(item.repeat.everySeconds || 0) : 0,
+            repeatCount: item.repeat && item.repeat.enabled ? Number(item.repeat.remaining || 0) : 0,
+            requireInteraction: Boolean(item.payload.requireInteraction),
+            silent: Boolean(item.payload.silent),
+            scheduledAt: new Date(item.fireAt).toISOString().slice(0, 16)
+          };
+          fillComposerFromState();
+          toast("info", "Draft loaded from scheduled item.");
+        }
+      }
+
+      async function handleQueueAction(action, id) {
+        const item = app.state.queue.find((x) => x.id === id);
+        if (!item) {
+          return;
+        }
+
+        if (action === "remove-queue") {
+          app.state.queue = app.state.queue.filter((x) => x.id !== id);
+          persistState();
+          renderQueueList();
+          log("info", "Queue item removed.", { id });
+          return;
+        }
+
+        if (action === "publish-queue") {
+          const ok = await notifyNow(item.payload, "queue-manual");
+          if (ok) {
+            item.status = "sent";
+            app.state.processedQueueIds.push(item.id);
+            persistState();
+            renderQueueList();
+            attemptGitHubSync("queue-manual-publish");
+          }
+          return;
+        }
+
+        if (action === "edit-queue") {
+          app.state.draft = {
+            title: item.payload.title,
+            body: item.payload.body,
+            targetUrl: item.payload.targetUrl,
+            iconUrl: item.payload.icon,
+            badgeUrl: item.payload.badge,
+            imageUrl: item.payload.image,
+            tag: item.payload.tag,
+            actionsRaw: Array.isArray(item.payload.actions) ? item.payload.actions.map((a) => `${a.title}:${a.action}`).join(", ") : "",
+            clientTarget: item.payload.clientTarget,
+            delaySeconds: 0,
+            repeatEverySeconds: item.repeat && item.repeat.enabled ? Number(item.repeat.everySeconds || 0) : 0,
+            repeatCount: item.repeat && item.repeat.enabled ? Number(item.repeat.remaining || 0) : 0,
+            requireInteraction: Boolean(item.payload.requireInteraction),
+            silent: Boolean(item.payload.silent),
+            scheduledAt: ""
+          };
+          fillComposerFromState();
+          toast("info", "Draft loaded from queue item.");
+          return;
+        }
+
+        if (action === "reschedule-queue") {
+          item.availableAt = Date.now() + 60000;
+          item.status = "scheduled";
+          persistState();
+          renderQueueList();
+          log("info", "Queue item rescheduled by 60s.", { id });
+          attemptGitHubSync("queue-reschedule");
+        }
+      }
+
+      function wireEvents() {
+        app.nodes.versionBadgeBtn.addEventListener("click", () => routeToChangelog(true));
+
+        app.nodes.modeToolbar.addEventListener("click", (event) => {
+          const target = event.target;
+          if (!(target instanceof HTMLElement)) {
+            return;
+          }
+          const mode = target.dataset.mode;
+          if (!mode) {
+            return;
+          }
+          applyComplexityMode(mode);
+          toast("info", `Switched to ${mode} mode.`);
+          log("info", "Complexity mode changed.", { mode });
+        });
+
+        app.nodes.acceptOnboardingBtn.addEventListener("click", acceptOnboarding);
+        app.nodes.declineOnboardingBtn.addEventListener("click", declineOnboarding);
+
+        app.nodes.easyRequestPermBtn.addEventListener("click", requestPermission);
+        app.nodes.easyRegisterSwBtn.addEventListener("click", registerServiceWorker);
+        app.nodes.easyQuickSendBtn.addEventListener("click", async () => {
+          const payload = {
+            id: uid("notif"),
+            title: "Easy mode quick test",
+            body: "This is a quick notification from easy flow.",
+            targetUrl: "/",
+            tag: "easy-quick",
+            actions: [],
+            clientTarget: "all"
+          };
+          await notifyNow(payload, "easy-quick");
+        });
+        app.nodes.easyOpenLinkingBtn.addEventListener("click", () => navigateTo("remote"));
+
+        app.nodes.runProScriptBtn.addEventListener("click", runProfessionalScript);
+        app.nodes.proSendTestScriptBtn.addEventListener("click", insertProSendTestScript);
+        app.nodes.proHelpCommandsBtn.addEventListener("click", () => {
+          if (window.NotificationLang && typeof window.NotificationLang.help === "function") {
+            appendProOutput("info", window.NotificationLang.help());
+          } else {
+            appendProOutput("error", "Command help source is unavailable.");
+          }
+        });
+        app.nodes.clearProOutputBtn.addEventListener("click", clearProOutput);
+        app.nodes.proAssetUploadBtn.addEventListener("click", uploadProAsset);
+
+        app.nodes.proConsoleSection.addEventListener("click", async (event) => {
+          const target = event.target;
+          if (!(target instanceof HTMLElement)) {
+            return;
+          }
+          const cmd = target.dataset.proCmd;
+          if (!cmd) {
+            return;
+          }
+          await runProCommand(cmd);
+        });
+
+        app.nodes.helpToggleBtn.addEventListener("click", () => {
+          const isHidden = app.nodes.helpCenterSection.classList.contains("hidden");
+          showPanel(isHidden ? "help" : "");
+        });
+
+        app.nodes.hamburgerBtn.addEventListener("click", () => {
+          const open = app.nodes.hamburgerMenu.classList.toggle("hidden");
+          app.nodes.hamburgerBtn.setAttribute("aria-expanded", open ? "false" : "true");
+        });
+
+        app.nodes.hamburgerMenu.addEventListener("click", (event) => {
+          const target = event.target;
+          if (!(target instanceof HTMLElement)) {
+            return;
+          }
+          const action = target.dataset.menuAction;
+          if (action === "open-help") {
+            showPanel("help");
+          }
+          if (action === "open-settings") {
+            showPanel("settings");
+          }
+          if (action === "open-remote") {
+            showPanel("remote");
+          }
+          if (action === "open-diagnostics") {
+            showPanel("diagnostics");
+            runDiagnosticsScan();
+          }
+          if (action === "open-navigator") {
+            showPanel("navigator");
+          }
+          if (action === "toggle-explanations") {
+            setExplanationVisibility(!app.state.settings.showExplanations);
+            toast("info", app.state.settings.showExplanations ? "Explanations are visible." : "Explanations are hidden.");
+          }
+          app.nodes.hamburgerMenu.classList.add("hidden");
+          app.nodes.hamburgerBtn.setAttribute("aria-expanded", "false");
+        });
+
+        document.addEventListener("click", (event) => {
+          const target = event.target;
+          if (!(target instanceof HTMLElement)) {
+            return;
+          }
+          if (!app.nodes.hamburgerMenu.contains(target) && target !== app.nodes.hamburgerBtn) {
+            app.nodes.hamburgerMenu.classList.add("hidden");
+            app.nodes.hamburgerBtn.setAttribute("aria-expanded", "false");
+          }
+          if (target.dataset.sectionHelp) {
+            const sectionId = target.dataset.sectionHelp;
+            showPanel("help");
+            const text = SECTION_HELP[sectionId] || "This section controls part of the notification workflow.";
+            app.nodes.helpContextNote.textContent = text;
+          }
+          if (target.dataset.navTarget) {
+            navigateTo(target.dataset.navTarget);
+          }
+          if (target.dataset.openWindow) {
+            openPanelInNewWindow(target.dataset.openWindow);
+          }
+        });
+
+        app.nodes.saveSettingsBtn.addEventListener("click", applySettingsFromUI);
+        app.nodes.subscribePushBtn.addEventListener("click", subscribeForRealPush);
+        app.nodes.registerRelayBtn.addEventListener("click", registerDeviceWithRelay);
+
+        app.nodes.generateRemoteLinkBtn.addEventListener("click", () => {
+          const link = generateRemoteShareLink();
+          if (link) {
+            toast("success", "Remote access link generated.");
+          }
+        });
+
+        app.nodes.copyRemoteLinkBtn.addEventListener("click", async () => {
+          const link = app.nodes.remoteShareLinkOutput.value || generateRemoteShareLink();
+          if (!link) {
+            return;
+          }
+          try {
+            await navigator.clipboard.writeText(link);
+            toast("success", "Remote link copied.");
+          } catch (error) {
+            toast("error", "Clipboard copy failed. You can copy manually.");
+          }
+        });
+
+        app.nodes.openRemoteLinkBtn.addEventListener("click", () => {
+          const link = app.nodes.remoteShareLinkOutput.value || generateRemoteShareLink();
+          if (!link) {
+            return;
+          }
+          window.open(link, "_blank", "noopener");
+        });
+        app.nodes.generateDeviceQrBtn.addEventListener("click", () => {
+          generateDeviceQrRoute();
+          toast("success", "QR route generated for device linking.");
+        });
+        app.nodes.copyDeviceRouteBtn.addEventListener("click", async () => {
+          const route = app.nodes.deviceLinkRouteOutput.value || generateDeviceQrRoute();
+          try {
+            await navigator.clipboard.writeText(route);
+            toast("success", "QR route copied.");
+          } catch (_error) {
+            toast("warn", "Unable to copy route. Copy manually from the field.");
+          }
+        });
+        app.nodes.sendRemoteNowBtn.addEventListener("click", sendRemoteNowFromUI);
+        app.nodes.sendResponseBtn.addEventListener("click", sendResponseMessage);
+        app.nodes.runDiagnosticsBtn.addEventListener("click", runDiagnosticsScan);
+        app.nodes.openLogsFromDiagnosticsBtn.addEventListener("click", () => navigateTo("logSection"));
+
+        app.nodes.requestShareLinkBtn.addEventListener("click", requestLinkPermission);
+        app.nodes.announcePresenceBtn.addEventListener("click", announcePresence);
+
+        app.nodes.incomingRequestsList.addEventListener("click", (event) => {
+          const target = event.target;
+          if (!(target instanceof HTMLElement)) {
+            return;
+          }
+          const action = target.dataset.action;
+          const id = target.dataset.id;
+          if (action === "approve-link" && id) {
+            approveIncomingRequest(id);
+          }
+        });
+
+        qs("requestPermBtn").addEventListener("click", requestPermission);
+        qs("registerSwBtn").addEventListener("click", registerServiceWorker);
+        qs("sendNowBtn").addEventListener("click", sendInstantFromDraft);
+        qs("refreshQueueBtn").addEventListener("click", async () => {
+          await fetchPublicQueue();
+          await processQueueEligibility();
+        });
+        qs("syncGithubBtn").addEventListener("click", () => attemptGitHubSync("manual"));
+        qs("startPollingBtn").addEventListener("click", startPolling);
+        qs("stopPollingBtn").addEventListener("click", stopPolling);
+
+        qs("scheduleLocalBtn").addEventListener("click", addScheduledFromDraft);
+        qs("addQueueBtn").addEventListener("click", () => addQueueFromDraft("local"));
+        qs("sendInstantBtn").addEventListener("click", sendInstantFromDraft);
+        qs("clearFormBtn").addEventListener("click", clearComposer);
+
+        qs("generateMassBtn").addEventListener("click", () => {
+          const baseTitle = app.nodes.titleInput.value.trim() || "Mass test";
+          for (let i = 0; i < 25; i += 1) {
+            app.state.queue.unshift({
+              id: uid("mass"),
+              payload: {
+                title: `${baseTitle} #${i + 1}`,
+                body: "Mass simulation item",
+                targetUrl: "/",
+                icon: "",
+                badge: "",
+                tag: "mass",
+                clientTarget: "all"
+              },
+              sourceType: "local",
+              status: "scheduled",
+              createdAt: nowIso(),
+              timestamp: nowIso(),
+              sendAt: Date.now() + (i * 350),
+              repeat: { enabled: false, everySeconds: 0, remaining: 0 },
+              availableAt: Date.now() + (i * 350)
+            });
+          }
+          persistState();
+          renderQueueList();
+          toast("success", "25 mass test queue items generated with staggered availability.");
+          log("info", "Mass queue simulation generated.", { count: 25 });
+        });
+
+        qs("clearCompletedBtn").addEventListener("click", () => {
+          app.state.scheduled = app.state.scheduled.filter((item) => item.status === "scheduled" || item.status === "paused");
+          persistState();
+          renderScheduledList();
+          toast("info", "Completed/cancelled scheduled items removed.");
+        });
+
+        qs("saveClientBtn").addEventListener("click", saveClientProfile);
+        qs("simulateRouteBtn").addEventListener("click", () => {
+          const route = app.nodes.targetUrlInput.value.trim() || "/";
+          window.location.href = new URL(route, window.location.href).toString();
+        });
+
+        qs("exportLogsBtn").addEventListener("click", exportLogs);
+        qs("clearLogsBtn").addEventListener("click", () => {
+          app.state.logs = [];
+          persistState();
+          renderLogs();
+          toast("info", "Logs cleared.");
+        });
+
+        app.nodes.scheduledList.addEventListener("click", (event) => {
+          const target = event.target;
+          if (!(target instanceof HTMLElement)) {
+            return;
+          }
+          const action = target.dataset.action;
+          const id = target.dataset.id;
+          if (action && id) {
+            handleScheduledAction(action, id);
+          }
+        });
+
+        app.nodes.queueList.addEventListener("click", async (event) => {
+          const target = event.target;
+          if (!(target instanceof HTMLElement)) {
+            return;
+          }
+          const action = target.dataset.action;
+          const id = target.dataset.id;
+          if (action && id) {
+            await handleQueueAction(action, id);
+          }
+        });
+
+        [
+          app.nodes.titleInput,
+          app.nodes.bodyInput,
+          app.nodes.targetUrlInput,
+          app.nodes.iconUrlInput,
+          app.nodes.badgeUrlInput,
+          app.nodes.imageUrlInput,
+          app.nodes.actionsInput,
+          app.nodes.tagInput,
+          app.nodes.clientTargetInput,
+          app.nodes.delayInput,
+          app.nodes.repeatEveryInput,
+          app.nodes.repeatCountInput,
+          app.nodes.requireInteractionInput,
+          app.nodes.silentInput,
+          app.nodes.scheduleAtInput
+        ].forEach((node) => {
+          node.addEventListener("input", () => {
+            hydrateDraftFromInputs();
+            persistState();
+          });
+        });
+
+        if (navigator.serviceWorker) {
+          navigator.serviceWorker.addEventListener("message", (event) => {
+            const data = event.data;
+            if (!data || typeof data !== "object") {
+              return;
+            }
+            if (data.type === "NOTIFICATION_CLICKED") {
+              log("info", "Notification click captured by service worker.", data.payload || {});
+              if (data.payload && data.payload.action === "respond") {
+                showPanel("remote");
+                app.nodes.responseToIdInput.value = data.payload.id || "";
+                app.nodes.responseToClientInput.value = data.payload.responseTargetClientId || "";
+                app.nodes.responseTextInput.focus();
+              }
+            }
+            if (data.type === "NOTIFICATION_DISMISSED") {
+              log("warn", "Notification dismissed.", data.payload || {});
+            }
+          });
+        }
+
+        [
+          app.nodes.queueStatusFilter,
+          app.nodes.queueTypeFilter,
+          app.nodes.queueClientFilter
+        ].forEach((node) => {
+          node.addEventListener("change", renderQueueList);
+        });
+
+        window.addEventListener("offline", () => {
+          log("error", "Network connection lost.", {
+            fix: "Reconnect internet and retry queue/relay sync."
+          });
+          toast("error", "Offline: sync and remote operations may fail.");
+        });
+
+        window.addEventListener("online", () => {
+          log("success", "Network connection restored.");
+          toast("success", "Online again. You can sync now.");
+        });
+
+        attachHoverHelp();
+      }
+
+      function startCountdownRerender() {
+        window.setInterval(() => {
+          renderScheduledList();
+        }, 1000);
+      }
+
+      async function boot() {
+        collectNodes();
+        loadState();
+
+        // Ensure this browser has a stable client identity for targeted testing.
+        if (!app.state.client.id) {
+          app.state.client.id = uid("client");
+        }
+        app.state.client.platform = navigator.userAgent;
+        app.state.runtime.permission = getPermissionState();
+        detectCapabilities();
+
+        refreshClientSelects();
+        fillComposerFromState();
+        renderHelpCenter();
+        setupSectionDots();
+        hydrateSettingsUI();
+        renderLinkingPanels();
+        generateDeviceQrRoute();
+        renderClientProfile();
+        renderScheduledList();
+        renderQueueList();
+        renderLogs();
+        updateStatusBadges();
+        await refreshVersionInfo();
+        wireEvents();
+        restoreAllTimers();
+        startCountdownRerender();
+
+        if (app.state.settings.autoRegisterSw) {
+          await registerServiceWorker();
+        }
+
+        if (app.state.settings.pollingEnabled) {
+          startPolling();
+        }
+
+        // Try to process queue items that were eligible while the app was closed.
+        await processQueueEligibility();
+
+        const routeUrl = new URL(window.location.href);
+        if (routeUrl.searchParams.get("help") === "1") {
+          showPanel("help");
+        }
+        if (routeUrl.searchParams.get("remote") === "1") {
+          showPanel("remote");
+          if (routeUrl.searchParams.get("topic")) {
+            app.nodes.remoteTopicInput.value = routeUrl.searchParams.get("topic") || "";
+          }
+          if (routeUrl.searchParams.get("gateway")) {
+            app.nodes.remoteHubBaseInput.value = routeUrl.searchParams.get("gateway") || "";
+          }
+          generateRemoteShareLink();
+        }
+
+        if (routeUrl.searchParams.get("settings") === "1") {
+          showPanel("settings");
+        }
+
+        if (routeUrl.searchParams.get("diagnostics") === "1") {
+          showPanel("diagnostics");
+          runDiagnosticsScan();
+        }
+
+        if (routeUrl.searchParams.get("navigator") === "1") {
+          showPanel("navigator");
+        }
+
+        if (routeUrl.searchParams.get("changelog") === "1") {
+          routeToChangelog(false);
+        }
+
+        const routeMode = routeUrl.searchParams.get("mode");
+        if (routeMode) {
+          applyComplexityMode(routeMode);
+        }
+
+        if (routeUrl.searchParams.get("replyToNotificationId")) {
+          showPanel("remote");
+          app.nodes.responseToIdInput.value = routeUrl.searchParams.get("replyToNotificationId") || "";
+          app.nodes.responseToClientInput.value = routeUrl.searchParams.get("responseTargetClientId") || "";
+        }
+
+        const connectPeer = routeUrl.searchParams.get("connectPeer");
+        if (connectPeer) {
+          showPanel("remote");
+          app.nodes.remotePeerIdInput.value = connectPeer;
+          const peerAlias = routeUrl.searchParams.get("connectAlias") || "";
+          if (peerAlias) {
+            app.nodes.remotePeerAliasInput.value = peerAlias;
+          }
+        }
+
+        runDiagnosticsScan();
+        await refreshProPanels();
+
+        if (window.NotificationLang && typeof window.NotificationLang.help === "function") {
+          appendProOutput("info", "Type help and press Run script to view command dictionary.");
+        }
+
+        if (!app.state.settings.onboardingAccepted) {
+          setOnboardingModalVisibility(true);
+        }
+
+        log("info", "Application startup complete.");
+      }
+
+      boot();
+    })();
+  </script>
+</body>
+</html>

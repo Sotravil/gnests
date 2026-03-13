@@ -1,0 +1,41 @@
+{
+  "id": "preset_daily_digest",
+  "name": "daily-digest",
+  "label": "Daily Digest",
+  "description": "Daily summary preset",
+  "version": 1,
+  "title": "Daily digest for {{user}}",
+  "body": "{{team}} updates are ready.",
+  "targetUrl": "{{route}}",
+  "tag": "digest",
+  "icon": "",
+  "badge": "",
+  "image": "",
+  "theme": {
+    "accent": "#22c55e"
+  },
+  "domains": [],
+  "silent": false,
+  "requireInteraction": false,
+  "actions": [
+    { "action": "open", "title": "Open Digest" }
+  ],
+  "meta": {
+    "category": "digest",
+    "source": "repo"
+  },
+  "placeholders": {
+    "user": {
+      "default": "friend",
+      "required": false
+    },
+    "team": {
+      "default": "team",
+      "required": false
+    },
+    "route": {
+      "default": "/digest",
+      "required": true
+    }
+  }
+}

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>GNESTS Embed Inline Config</title>
+</head>
+<body>
+  <h1>Inline Config Example</h1>
+  <div id="gnests-slot"></div>
+
+  <script>
+    window.GNESTS_EMBEDS = window.GNESTS_EMBEDS || [];
+    window.GNESTS_EMBEDS.push({
+      id: "embed_inline",
+      name: "inline-sample",
+      runtime: {
+        scriptSrc: "../dist/gnests-embed.js",
+        mount: "#gnests-slot",
+        mode: "notification",
+        autostart: true
+      },
+      payload: {
+        title: "Inline Example",
+        body: "Config was pushed before runtime script load.",
+        targetUrl: "/",
+        tag: "inline"
+      },
+      theme: {
+        border: "#94a3b8",
+        background: "#f8fafc",
+        text: "#0f172a",
+        radius: 10
+      },
+      domains: []
+    });
+  </script>
+  <script src="../dist/gnests-embed.js"></script>
+</body>
+</html>

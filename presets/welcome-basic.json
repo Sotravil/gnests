@@ -1,0 +1,37 @@
+{
+  "id": "preset_welcome_basic",
+  "name": "welcome-basic",
+  "label": "Welcome Basic",
+  "description": "Simple welcome notification with placeholder support",
+  "version": 1,
+  "title": "Hello {{user}}",
+  "body": "Tap to open {{route}}",
+  "targetUrl": "{{route}}",
+  "tag": "welcome",
+  "icon": "",
+  "badge": "",
+  "image": "",
+  "theme": {
+    "accent": "#0ea5e9"
+  },
+  "domains": ["example.com"],
+  "silent": false,
+  "requireInteraction": false,
+  "actions": [
+    { "action": "open", "title": "Open" }
+  ],
+  "meta": {
+    "category": "welcome",
+    "source": "repo"
+  },
+  "placeholders": {
+    "user": {
+      "default": "friend",
+      "required": false
+    },
+    "route": {
+      "default": "/",
+      "required": true
+    }
+  }
+}

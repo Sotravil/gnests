@@ -1,0 +1,26 @@
+{
+  "project": "GNESTS Notification Suite",
+  "version": "0.8.0",
+  "releaseDate": "2026-03-12",
+  "changelogUrl": "https://github.com/Sotravil/gnests/blob/main/CHANGELOG.md",
+  "categories": [
+    "PWA Runtime",
+    "Service Worker Notifications",
+    "Queue Orchestration",
+    "Professional Console",
+    "Embed Export",
+    "Diagnostics"
+  ],
+  "highlights": [
+    "Added GitHub-referenced version metadata flow via version.json.",
+    "Added in-app changelog section with release date and categorized highlights.",
+    "Added auto update notification with click routing to changelog in index.html.",
+    "Expanded docs with semantic versioning and release management guidance."
+  ],
+  "repository": {
+    "owner": "Sotravil",
+    "repo": "gnests",
+    "branch": "main",
+    "versionFile": "version.json"
+  }
+}

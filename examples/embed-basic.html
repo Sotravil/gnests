@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>GNESTS Embed Basic</title>
+</head>
+<body>
+  <h1>Embed Basic Example</h1>
+  <div id="gnests-slot"></div>
+
+  <script src="../dist/gnests-embed.js"></script>
+  <script>
+    window.GNESTS_EMBEDS = window.GNESTS_EMBEDS || [];
+    window.GNESTS_EMBEDS.push({
+      id: "embed_demo",
+      name: "demo-embed",
+      runtime: {
+        scriptSrc: "../dist/gnests-embed.js",
+        mount: "#gnests-slot",
+        mode: "notification",
+        autostart: true
+      },
+      payload: {
+        title: "Hello from GNESTS",
+        body: "This is a static embed demo.",
+        targetUrl: "/",
+        icon: "",
+        badge: "",
+        image: "",
+        tag: "demo"
+      },
+      theme: {
+        border: "#d6e1e6",
+        background: "#ffffff",
+        text: "#111827",
+        radius: 12
+      },
+      domains: []
+    });
+  </script>
+</body>
+</html>

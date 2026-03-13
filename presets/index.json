@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "generatedAt": "2026-03-12T00:00:00.000Z",
+  "items": [
+    {
+      "name": "welcome-basic",
+      "label": "Welcome Basic",
+      "description": "Simple placeholder-driven welcome preset"
+    },
+    {
+      "name": "daily-digest",
+      "label": "Daily Digest",
+      "description": "Digest-style summary notification preset"
+    }
+  ]
+}
