@@ -1417,7 +1417,7 @@
         <span class="subtle">Core behavior toggles and sync configuration</span>
       </div>
       <p class="section-purpose">Purpose: configure scheduling, polling, sync, and real relay options that control whether background notifications can be delivered and retried.</p>
-      <form autocomplete="off" onsubmit="return false">
+      <div class="settings-fields">
       <div class="grid-3">
         <label>Auto register service worker
           <select id="settingAutoSwInput">
@@ -1450,7 +1450,7 @@
         </label>
       </div>
       <label>Relay API key (optional)
-        <input id="settingRelayApiKeyInput" type="password" placeholder="relay_key_...">
+        <input id="settingRelayApiKeyInput" type="password" autocomplete="off" placeholder="relay_key_...">
       </label>
       <div class="button-row">
         <button id="subscribePushBtn" class="secondary">Subscribe for real push</button>
@@ -1473,12 +1473,12 @@
         </label>
       </div>
       <label>GitHub token (dev use only)
-        <input id="settingGithubTokenInput" type="password" placeholder="ghp_...">
+        <input id="settingGithubTokenInput" type="password" autocomplete="off" placeholder="ghp_...">
       </label>
       <div class="button-row">
         <button id="saveSettingsBtn" type="button" class="secondary">Save settings</button>
       </div>
-      </form>
+      </div>
       <div class="chain-nav">
         <button class="secondary" data-nav-target="home">Back to workspace</button>
         <button class="secondary" data-open-window="settings">Open settings in new window</button>
@@ -2273,6 +2273,9 @@
       }
 
       function compareSemver(left, right) {
+        if (typeof left !== "string" || typeof right !== "string") {
+          console.warn("[GNESTS:INTEGRITY] compareSemver: non-string input", { left: typeof left, right: typeof right });
+        }
         const leftParts = String(left || "0.0.0").split(".").map((part) => Number(part) || 0);
         const rightParts = String(right || "0.0.0").split(".").map((part) => Number(part) || 0);
         const maxLength = Math.max(leftParts.length, rightParts.length);
@@ -2399,6 +2402,13 @@
       }
 
       function log(level, message, meta = {}) {
+        if (typeof level !== "string" || typeof message !== "string") {
+          console.warn("[GNESTS:INTEGRITY] log() called with non-string level or message", { level: typeof level, message: typeof message });
+        }
+        const validLevels = ["info", "success", "warn", "error", "debug"];
+        if (!validLevels.includes(level)) {
+          console.warn("[GNESTS:WARN] log() called with unrecognized level: '" + level + "' — entry will still be stored");
+        }
         const entry = {
           id: uid("log"),
           level,
@@ -2406,6 +2416,10 @@
           timestamp: nowIso(),
           meta
         };
+        if (!Array.isArray(app.state.logs)) {
+          console.error("[GNESTS:INTEGRITY] log: app.state.logs is not an array — reinitializing");
+          app.state.logs = [];
+        }
         app.state.logs.unshift(entry);
         if (app.state.logs.length > 300) {
           app.state.logs.length = 300;
@@ -2415,30 +2429,78 @@
       }
 
       function persistState() {
-        const snapshot = {
-          settings: app.state.settings,
-          client: app.state.client,
-          draft: app.state.draft,
-          scheduled: app.state.scheduled,
-          queue: app.state.queue,
-          processedQueueIds: app.state.processedQueueIds,
-          notificationHistory: app.state.notificationHistory || [],
-          logs: app.state.logs,
-          linking: app.state.linking,
-          runtime: {
-            lastSyncAt: app.state.runtime.lastSyncAt
+        try {
+          const snapshot = {
+            settings: app.state.settings,
+            client: app.state.client,
+            draft: app.state.draft,
+            scheduled: app.state.scheduled,
+            queue: app.state.queue,
+            processedQueueIds: app.state.processedQueueIds,
+            notificationHistory: app.state.notificationHistory || [],
+            logs: app.state.logs,
+            linking: app.state.linking,
+            runtime: {
+              lastSyncAt: app.state.runtime.lastSyncAt
+            }
+          };
+          // Integrity: check for unexpected nulls in critical sections
+          if (!snapshot.settings || typeof snapshot.settings !== "object") {
+            console.warn("[GNESTS:INTEGRITY] persistState: settings is missing or not an object", { settings: snapshot.settings });
           }
-        };
-        localStorage.setItem(STORAGE_KEYS.appState, JSON.stringify(snapshot));
+          if (!snapshot.client || !snapshot.client.id) {
+            console.warn("[GNESTS:INTEGRITY] persistState: client.id is missing — state may be partially initialized", { client: snapshot.client });
+          }
+          if (!Array.isArray(snapshot.scheduled)) {
+            console.warn("[GNESTS:INTEGRITY] persistState: scheduled is not an array", { type: typeof snapshot.scheduled });
+          }
+          if (!Array.isArray(snapshot.queue)) {
+            console.warn("[GNESTS:INTEGRITY] persistState: queue is not an array", { type: typeof snapshot.queue });
+          }
+          const serialized = JSON.stringify(snapshot);
+          if (!serialized || serialized === "{}" || serialized === "null") {
+            console.error("[GNESTS:ERROR] persistState: serialization produced empty/null result — aborting save");
+            return;
+          }
+          const sizeKb = Math.round(serialized.length / 1024);
+          if (sizeKb > 4000) {
+            console.warn("[GNESTS:WARN] persistState: state size is " + sizeKb + "KB — approaching localStorage limits");
+          }
+          localStorage.setItem(STORAGE_KEYS.appState, serialized);
+        } catch (err) {
+          console.error("[GNESTS:ERROR] persistState: failed to serialize or save state", { error: String(err) });
+        }
       }
 
       function loadState() {
+        console.log("[GNESTS:INFO] loadState: reading persisted state from localStorage");
         const raw = localStorage.getItem(STORAGE_KEYS.appState);
         if (!raw) {
+          console.log("[GNESTS:INFO] loadState: no persisted state found — using clean defaults");
           return;
         }
+        const rawSizeKb = Math.round(raw.length / 1024);
+        console.log("[GNESTS:DEBUG] loadState: raw data size = " + rawSizeKb + "KB");
         try {
           const parsed = JSON.parse(raw);
+          if (!parsed || typeof parsed !== "object") {
+            console.error("[GNESTS:INTEGRITY] loadState: parsed state is not an object", { type: typeof parsed });
+            toast("error", "Stored state is corrupt — using clean defaults.");
+            return;
+          }
+          // Integrity checks on parsed shape
+          if (parsed.settings && typeof parsed.settings !== "object") {
+            console.warn("[GNESTS:INTEGRITY] loadState: settings is not an object — skipping merge", { type: typeof parsed.settings });
+            parsed.settings = {};
+          }
+          if (parsed.client && typeof parsed.client !== "object") {
+            console.warn("[GNESTS:INTEGRITY] loadState: client is not an object — skipping merge", { type: typeof parsed.client });
+            parsed.client = {};
+          }
+          if (parsed.draft && typeof parsed.draft !== "object") {
+            console.warn("[GNESTS:INTEGRITY] loadState: draft is not an object — skipping merge", { type: typeof parsed.draft });
+            parsed.draft = {};
+          }
           app.state.settings = { ...app.state.settings, ...(parsed.settings || {}) };
           app.state.client = { ...app.state.client, ...(parsed.client || {}) };
           app.state.draft = { ...app.state.draft, ...(parsed.draft || {}) };
@@ -2453,9 +2515,30 @@
             outgoingRequests: parsed.linking && Array.isArray(parsed.linking.outgoingRequests) ? parsed.linking.outgoingRequests : []
           };
           app.state.runtime.lastSyncAt = parsed.runtime && parsed.runtime.lastSyncAt ? parsed.runtime.lastSyncAt : null;
+          // Post-load integrity audits
+          const badScheduled = app.state.scheduled.filter(s => !s || !s.id || !s.payload);
+          if (badScheduled.length) {
+            console.warn("[GNESTS:INTEGRITY] loadState: " + badScheduled.length + " scheduled items lack id or payload — they may fail when processed");
+          }
+          const badQueue = app.state.queue.filter(q => !q || !q.id || !q.payload);
+          if (badQueue.length) {
+            console.warn("[GNESTS:INTEGRITY] loadState: " + badQueue.length + " queue items lack id or payload — they may fail when processed");
+          }
+          const badDevices = app.state.linking.linkedDevices.filter(d => !d || !d.id);
+          if (badDevices.length) {
+            console.warn("[GNESTS:INTEGRITY] loadState: " + badDevices.length + " linked devices lack an id");
+          }
+          console.log("[GNESTS:INFO] loadState: state restored", {
+            scheduled: app.state.scheduled.length,
+            queue: app.state.queue.length,
+            logs: app.state.logs.length,
+            history: app.state.notificationHistory.length,
+            linkedDevices: app.state.linking.linkedDevices.length,
+            clientId: app.state.client.id || "(none)"
+          });
         } catch (error) {
           toast("error", "State restore failed; using clean defaults.");
-          console.error(error);
+          console.error("[GNESTS:ERROR] loadState: JSON parse or merge failed", { error: String(error) });
         }
       }
 
@@ -2609,6 +2692,13 @@
           clearNotificationHistoryBtn: qs("clearNotificationHistoryBtn"),
           resendLastNotificationBtn: qs("resendLastNotificationBtn")
         };
+        // Audit collected nodes for nulls (missing DOM elements)
+        const nullNodes = Object.entries(app.nodes).filter(([, v]) => v === null).map(([k]) => k);
+        if (nullNodes.length) {
+          console.warn("[GNESTS:INTEGRITY] collectNodes: " + nullNodes.length + " DOM node(s) resolved to null \u2014 these elements are missing from the HTML", { nullNodes });
+        } else {
+          console.log("[GNESTS:INFO] collectNodes: all " + Object.keys(app.nodes).length + " DOM nodes collected successfully");
+        }
       }
 
       function updateExplanationMenuLabel() {
@@ -2750,12 +2840,17 @@
       }
 
       async function refreshProPanels() {
+        console.log("[GNESTS:DEBUG] refreshProPanels: refreshing all professional panels");
         renderProDraftInspector();
         renderProPresetList();
         renderProAssets();
         renderProThemeDomain();
         renderProEmbeds();
-        await renderProRepoList();
+        try {
+          await renderProRepoList();
+        } catch (err) {
+          console.warn("[GNESTS:WARN] refreshProPanels: renderProRepoList failed", { error: String(err) });
+        }
       }
 
       async function uploadProAsset() {
@@ -2791,11 +2886,22 @@
       async function runProCommand(cmdText) {
         const code = String(cmdText || "").trim();
         if (!code) {
+          console.log("[GNESTS:DEBUG] runProCommand: empty command, skipping");
           return;
         }
 
+        console.log("[GNESTS:INFO] runProCommand: executing", { codeLength: code.length, preview: code.substring(0, 80) });
         appendProOutput("command", code);
-        const results = await window.NotificationLang.execute(code, {
+
+        if (!window.NotificationLang || typeof window.NotificationLang.execute !== "function") {
+          console.error("[GNESTS:ERROR] runProCommand: NotificationLang DSL engine is not available");
+          appendProOutput("error", "NotificationLang DSL engine is not loaded.");
+          return;
+        }
+
+        let results;
+        try {
+          results = await window.NotificationLang.execute(code, {
           mode: "professional",
           strict: false,
           clientId: app.state.client.id,
@@ -2834,6 +2940,17 @@
             return { id: item.id, fireAt: item.fireAt };
           }
         });
+        } catch (dslErr) {
+          console.error("[GNESTS:ERROR] runProCommand: DSL execution threw", { error: String(dslErr) });
+          appendProOutput("error", "DSL execution error: " + String(dslErr));
+          return;
+        }
+
+        if (!Array.isArray(results)) {
+          console.warn("[GNESTS:INTEGRITY] runProCommand: results is not an array", { type: typeof results });
+          return;
+        }
+        console.log("[GNESTS:DEBUG] runProCommand: received " + results.length + " result(s)");
 
         results.forEach((entry) => {
           const rsp = entry.response;
@@ -2935,7 +3052,9 @@
       }
 
       async function acceptOnboarding() {
+        console.log("[GNESTS:INFO] acceptOnboarding called");
         if (!app.nodes.consentFingerprintInput.checked) {
+          console.log("[GNESTS:DEBUG] acceptOnboarding: fingerprint consent not checked");
           toast("warn", "Fingerprint consent is required to continue with linking and tracking features.");
           return;
         }
@@ -2948,13 +3067,19 @@
         log("success", "Onboarding accepted with fingerprint consent.");
 
         if (app.nodes.consentNotificationInput.checked) {
-          await requestPermission();
-          await registerServiceWorker();
-          if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-            toast("info", "Mobile note: background behavior depends on browser policy and install state.");
-            log("info", "Mobile-specific background constraints explained to user.");
+          try {
+            await requestPermission();
+            await registerServiceWorker();
+            if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+              toast("info", "Mobile note: background behavior depends on browser policy and install state.");
+              log("info", "Mobile-specific background constraints explained to user.");
+            }
+          } catch (err) {
+            console.error("[GNESTS:ERROR] acceptOnboarding: permission/SW flow failed", { error: String(err) });
+            toast("error", "Permission or service worker setup failed: " + String(err));
           }
         } else {
+          console.log("[GNESTS:DEBUG] acceptOnboarding: notification consent skipped");
           toast("warn", "Notification permission was skipped. You can enable it later.");
         }
       }
@@ -2988,6 +3113,11 @@
       }
 
       async function sendQuickPayload(payload) {
+        console.log("[GNESTS:INFO] sendQuickPayload called", { title: payload && payload.title });
+        if (!payload || typeof payload !== "object") {
+          console.error("[GNESTS:INTEGRITY] sendQuickPayload: payload is not an object", { type: typeof payload });
+          return false;
+        }
         const finalPayload = {
           id: uid("notif"),
           title: payload.title || "Notification",
@@ -3002,7 +3132,16 @@
           silent: Boolean(payload.silent),
           clientTarget: payload.clientTarget || "all"
         };
-        return notifyNow(finalPayload, "dsl");
+        try {
+          const ok = await notifyNow(finalPayload, "dsl");
+          if (!ok) {
+            console.warn("[GNESTS:WARN] sendQuickPayload: notifyNow returned false — notification may not have been delivered");
+          }
+          return ok;
+        } catch (err) {
+          console.error("[GNESTS:ERROR] sendQuickPayload: notifyNow threw unexpectedly", { error: String(err) });
+          return false;
+        }
       }
 
       async function runProfessionalScript() {
@@ -3166,16 +3305,26 @@
       }
 
       async function refreshVersionInfo() {
-        const result = await fetchVersionInfo();
-        app.state.runtime.version.remoteVersion = result.data.version;
-        app.state.runtime.version.remoteLaunchDate = result.data.releaseDate;
-        app.state.runtime.version.highlights = result.data.highlights;
-        app.state.runtime.version.categories = result.data.categories;
-        app.state.runtime.version.changelogUrl = result.data.changelogUrl;
-        app.state.runtime.version.source = result.source;
-        app.state.runtime.version.checkedAt = nowIso();
-        renderVersionSummary();
-        notifyIfNewerVersion(result.data);
+        console.log("[GNESTS:INFO] refreshVersionInfo: checking for updates");
+        try {
+          const result = await fetchVersionInfo();
+          if (!result || !result.data) {
+            console.warn("[GNESTS:INTEGRITY] refreshVersionInfo: fetchVersionInfo returned invalid result", { result });
+            return;
+          }
+          app.state.runtime.version.remoteVersion = result.data.version;
+          app.state.runtime.version.remoteLaunchDate = result.data.releaseDate;
+          app.state.runtime.version.highlights = result.data.highlights;
+          app.state.runtime.version.categories = result.data.categories;
+          app.state.runtime.version.changelogUrl = result.data.changelogUrl;
+          app.state.runtime.version.source = result.source;
+          app.state.runtime.version.checkedAt = nowIso();
+          console.log("[GNESTS:INFO] refreshVersionInfo: remote version =", result.data.version, "source =", result.source);
+          renderVersionSummary();
+          notifyIfNewerVersion(result.data);
+        } catch (err) {
+          console.warn("[GNESTS:WARN] refreshVersionInfo: failed to fetch version info", { error: String(err) });
+        }
       }
 
       function setupSectionDots() {
@@ -3253,8 +3402,13 @@
       }
 
       function applySettingsFromUI() {
+        console.log("[GNESTS:INFO] applySettingsFromUI called");
         app.state.settings.autoRegisterSw = app.nodes.settingAutoSwInput.value === "true";
         app.state.settings.pollingIntervalMs = Math.max(5000, Number(app.nodes.settingPollingMsInput.value || 60000));
+        if (!Number.isFinite(app.state.settings.pollingIntervalMs)) {
+          console.warn("[GNESTS:INTEGRITY] applySettingsFromUI: pollingIntervalMs parsed as NaN — using default", { raw: app.nodes.settingPollingMsInput.value });
+          app.state.settings.pollingIntervalMs = 60000;
+        }
         app.state.settings.githubSync.enabled = app.nodes.settingGithubEnabledInput.value === "true";
         app.state.settings.relay.enabled = app.nodes.settingRelayEnabledInput.value === "true";
         app.state.settings.relay.baseUrl = app.nodes.settingRelayBaseUrlInput.value.trim();
@@ -3265,6 +3419,13 @@
         app.state.settings.githubSync.path = app.nodes.settingGithubPathInput.value.trim() || "queue.json";
         app.state.settings.githubSync.branch = app.nodes.settingGithubBranchInput.value.trim() || "main";
         app.state.settings.githubSync.token = app.nodes.settingGithubTokenInput.value.trim();
+        // Integrity: warn if relay is enabled but config is incomplete
+        if (app.state.settings.relay.enabled && !app.state.settings.relay.baseUrl) {
+          console.warn("[GNESTS:WARN] applySettingsFromUI: relay enabled but baseUrl is empty");
+        }
+        if (app.state.settings.githubSync.enabled && (!app.state.settings.githubSync.owner || !app.state.settings.githubSync.token)) {
+          console.warn("[GNESTS:WARN] applySettingsFromUI: GitHub sync enabled but owner/token is missing");
+        }
         persistState();
         toast("success", "Settings saved.");
         log("success", "Settings updated.", {
@@ -3277,10 +3438,15 @@
       }
 
       function b64ToUint8Array(base64String) {
-        const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-        const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-        const rawData = atob(base64);
-        return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
+        try {
+          const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+          const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+          const rawData = atob(base64);
+          return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
+        } catch (err) {
+          console.error("[GNESTS:ERROR] b64ToUint8Array: failed to decode base64 string", { error: String(err), inputLength: base64String ? base64String.length : 0 });
+          throw err;
+        }
       }
 
       function relayHeaders() {
@@ -3364,7 +3530,27 @@
         console.log("[GNESTS] sendRealRemoteNotification called", { targetClientId, relayEnabled: app.state.settings.relay.enabled, relayBase: app.state.settings.relay.baseUrl, payloadTitle: payload.title, meta });
         const relayBase = app.state.settings.relay.baseUrl;
         if (!app.state.settings.relay.enabled || !relayBase) {
-          toast("warn", "Relay is not configured. Cannot send real closed-browser remote push.");
+          // Fallback: send via ntfy.sh relay topic when relay backend is not configured
+          const activeTopic = relayTopic || app.state.linking.activeRelayTopic;
+          if (activeTopic) {
+            console.log("[GNESTS:INFO] sendRealRemoteNotification: relay backend not configured, falling back to ntfy.sh", { topic: activeTopic });
+            try {
+              await relayPublish(activeTopic, {
+                type: "remote-notification",
+                from: { id: app.state.client.id, alias: app.state.client.nickname || app.state.client.id, platform: app.state.client.platform },
+                to: targetClientId,
+                payload,
+                meta,
+                ts: nowIso()
+              });
+              log("success", "Remote notification sent via ntfy.sh relay.", { targetClientId });
+              return true;
+            } catch (err) {
+              console.error("[GNESTS:ERROR] sendRealRemoteNotification: ntfy.sh fallback failed", { error: String(err) });
+              return false;
+            }
+          }
+          toast("warn", "Relay is not configured and no active relay topic. Cannot send remote notification.");
           return false;
         }
 
@@ -3392,10 +3578,18 @@
 
       async function sendRemoteNowFromUI() {
         const targetClientId = app.nodes.remoteSendTargetSelect.value;
-        console.log("[GNESTS] sendRemoteNowFromUI called", { targetClientId, relayEnabled: app.state.settings.relay.enabled, relayBase: app.state.settings.relay.baseUrl, linkedDevices: app.state.linking.linkedDevices.length });
+        console.log("[GNESTS:INFO] sendRemoteNowFromUI called", { targetClientId, relayEnabled: app.state.settings.relay.enabled, relayBase: app.state.settings.relay.baseUrl, linkedDevices: app.state.linking.linkedDevices.length });
         if (!targetClientId) {
+          console.warn("[GNESTS:WARN] sendRemoteNowFromUI: no target client selected");
           toast("warn", "Choose a linked target device first.");
           return;
+        }
+        // Integrity: verify target is in linked devices
+        const targetDevice = app.state.linking.linkedDevices.find(d => d.id === targetClientId);
+        if (!targetDevice) {
+          console.warn("[GNESTS:INTEGRITY] sendRemoteNowFromUI: target " + targetClientId.substring(0, 24) + " is not in linkedDevices list");
+        } else if (targetDevice.status !== "linked") {
+          console.warn("[GNESTS:WARN] sendRemoteNowFromUI: target device status is '" + targetDevice.status + "' not 'linked' — delivery may fail");
         }
         const title = app.nodes.remoteSendTitleInput.value.trim() || "Remote test";
         const body = app.nodes.remoteSendBodyInput.value.trim() || "Remote notification message";
@@ -3413,23 +3607,32 @@
           responseTargetClientId: app.state.client.id
         };
 
-        const ok = await sendRealRemoteNotification(targetClientId, payload, { mode: "direct" });
-        if (ok) {
-          toast("success", "Real remote notification request sent to relay.");
-        } else {
-          toast("error", "Failed to send real remote notification.");
+        try {
+          const ok = await sendRealRemoteNotification(targetClientId, payload, { mode: "direct" });
+          if (ok) {
+            toast("success", "Real remote notification request sent to relay.");
+          } else {
+            console.warn("[GNESTS:WARN] sendRemoteNowFromUI: sendRealRemoteNotification returned false");
+            toast("error", "Failed to send real remote notification.");
+          }
+        } catch (err) {
+          console.error("[GNESTS:ERROR] sendRemoteNowFromUI: unhandled error", { error: String(err) });
+          toast("error", "Remote send error: " + String(err));
         }
       }
 
       async function sendResponseMessage() {
+        console.log("[GNESTS:INFO] sendResponseMessage called");
         const targetClientId = app.nodes.responseToClientInput.value.trim();
         const responseText = app.nodes.responseTextInput.value.trim();
         const replyToNotificationId = app.nodes.responseToIdInput.value.trim();
         if (!targetClientId) {
+          console.warn("[GNESTS:WARN] sendResponseMessage: no target client specified");
           toast("warn", "No reply target selected.");
           return;
         }
         if (!responseText) {
+          console.warn("[GNESTS:WARN] sendResponseMessage: empty response text");
           toast("warn", "Response text is required.");
           return;
         }
@@ -3446,12 +3649,18 @@
           responseFromClientId: app.state.client.id
         };
 
-        const ok = await sendRealRemoteNotification(targetClientId, payload, { mode: "response" });
-        if (ok) {
-          toast("success", "Response sent via relay.");
-          app.nodes.responseTextInput.value = "";
-        } else {
-          toast("error", "Response send failed.");
+        try {
+          const ok = await sendRealRemoteNotification(targetClientId, payload, { mode: "response" });
+          if (ok) {
+            toast("success", "Response sent via relay.");
+            app.nodes.responseTextInput.value = "";
+          } else {
+            console.warn("[GNESTS:WARN] sendResponseMessage: sendRealRemoteNotification returned false");
+            toast("error", "Response send failed.");
+          }
+        } catch (err) {
+          console.error("[GNESTS:ERROR] sendResponseMessage: unhandled error", { error: String(err) });
+          toast("error", "Response error: " + String(err));
         }
       }
 
@@ -3483,7 +3692,7 @@
       }
 
       function buildDeviceLinkRoute() {
-        const topic = generateRelayTopic();
+        const topic = app.state.linking.activeRelayTopic || generateRelayTopic();
         const url = new URL(window.location.href);
         url.searchParams.set("remote", "1");
         url.searchParams.set("connectPeer", app.state.client.id || "unknown-client");
@@ -3619,16 +3828,29 @@
       }
 
       function upsertLinkedDevice(device) {
-        console.log("[GNESTS] upsertLinkedDevice", { id: device && device.id, alias: device && device.alias, status: device && device.status });
+        console.log("[GNESTS:INFO] upsertLinkedDevice", { id: device && device.id, alias: device && device.alias, status: device && device.status });
         if (!device || !device.id) {
+          console.warn("[GNESTS:INTEGRITY] upsertLinkedDevice: called with missing or invalid device object", { device });
           return;
+        }
+        if (typeof device.id !== "string") {
+          console.warn("[GNESTS:INTEGRITY] upsertLinkedDevice: device.id is not a string", { type: typeof device.id });
+        }
+        if (device.id === app.state.client.id) {
+          console.warn("[GNESTS:WARN] upsertLinkedDevice: attempting to link self — this is unusual");
+        }
+        if (!Array.isArray(app.state.linking.linkedDevices)) {
+          console.error("[GNESTS:INTEGRITY] upsertLinkedDevice: linkedDevices is not an array — reinitializing");
+          app.state.linking.linkedDevices = [];
         }
         const existing = app.state.linking.linkedDevices.find((entry) => entry.id === device.id);
         if (existing) {
+          console.log("[GNESTS:DEBUG] upsertLinkedDevice: updating existing device", { id: device.id, oldStatus: existing.status, newStatus: device.status });
           existing.alias = device.alias || existing.alias || "";
           existing.status = device.status || existing.status || "visible";
           existing.lastSeenAt = device.lastSeenAt || nowIso();
         } else {
+          console.log("[GNESTS:DEBUG] upsertLinkedDevice: adding new device", { id: device.id });
           app.state.linking.linkedDevices.unshift({
             id: device.id,
             alias: device.alias || "",
@@ -3639,6 +3861,13 @@
       }
 
       function queueSignal(signalKind, signalData) {
+        console.log("[GNESTS:DEBUG] queueSignal", { signalKind, dataKeys: signalData ? Object.keys(signalData) : [] });
+        if (!signalKind) {
+          console.warn("[GNESTS:INTEGRITY] queueSignal: signalKind is empty");
+        }
+        if (!signalData || typeof signalData !== "object") {
+          console.warn("[GNESTS:INTEGRITY] queueSignal: signalData is not an object", { type: typeof signalData });
+        }
         const signalItem = {
           id: uid("signal"),
           source: "linking",
@@ -3704,6 +3933,7 @@
       }
 
       function announcePresence() {
+        console.log("[GNESTS:INFO] announcePresence called");
         queueSignal("presence", {
           clientId: app.state.client.id,
           alias: app.state.client.nickname || app.state.client.id,
@@ -3711,7 +3941,11 @@
           lastSeenAt: nowIso()
         });
         persistState();
-        attemptGitHubSync("presence");
+        try {
+          attemptGitHubSync("presence");
+        } catch (err) {
+          console.warn("[GNESTS:WARN] announcePresence: GitHub sync failed", { error: String(err) });
+        }
         toast("success", "Presence announcement queued.");
       }
 
@@ -3795,7 +4029,12 @@
           return false;
         }
 
+        console.log("[GNESTS:DEBUG] processLinkSignal", { signalKind: item.signalKind, hasData: !!item.signalData });
         const data = item.signalData;
+        if (typeof data !== "object") {
+          console.warn("[GNESTS:INTEGRITY] processLinkSignal: signalData is not an object", { type: typeof data });
+          return false;
+        }
         if (item.signalKind === "presence") {
           if (data.clientId && data.clientId !== app.state.client.id) {
             upsertLinkedDevice({
@@ -3916,12 +4155,23 @@
       }
 
       async function requestPermission() {
-        const result = await ensureNotificationPermission();
-        if (result === "granted") {
-          // Also auto-register SW if not already done
-          if (!app.state.runtime.swRegistered) {
-            await registerServiceWorker();
+        console.log("[GNESTS:INFO] requestPermission: starting permission+SW flow");
+        try {
+          const result = await ensureNotificationPermission();
+          console.log("[GNESTS:DEBUG] requestPermission: ensureNotificationPermission returned", { result });
+          if (result === "granted") {
+            if (!app.state.runtime.swRegistered) {
+              console.log("[GNESTS:INFO] requestPermission: SW not registered yet — auto-registering");
+              await registerServiceWorker();
+            } else {
+              console.log("[GNESTS:DEBUG] requestPermission: SW already registered, skipping");
+            }
+          } else {
+            console.warn("[GNESTS:WARN] requestPermission: permission not granted", { result });
           }
+        } catch (err) {
+          console.error("[GNESTS:ERROR] requestPermission: unhandled error in permission/SW flow", { error: String(err) });
+          toast("error", "Permission/SW flow error: " + String(err));
         }
       }
 
@@ -3964,6 +4214,19 @@
         app.state.draft.requireInteraction = app.nodes.requireInteractionInput.value === "true";
         app.state.draft.silent = app.nodes.silentInput.value === "true";
         app.state.draft.scheduledAt = app.nodes.scheduleAtInput.value;
+        // Integrity: detect NaN from numeric coercion
+        if (!Number.isFinite(app.state.draft.delaySeconds)) {
+          console.warn("[GNESTS:INTEGRITY] hydrateDraftFromInputs: delaySeconds parsed as NaN — resetting to 0", { raw: app.nodes.delayInput.value });
+          app.state.draft.delaySeconds = 0;
+        }
+        if (!Number.isFinite(app.state.draft.repeatEverySeconds)) {
+          console.warn("[GNESTS:INTEGRITY] hydrateDraftFromInputs: repeatEverySeconds parsed as NaN — resetting to 0", { raw: app.nodes.repeatEveryInput.value });
+          app.state.draft.repeatEverySeconds = 0;
+        }
+        if (!Number.isFinite(app.state.draft.repeatCount)) {
+          console.warn("[GNESTS:INTEGRITY] hydrateDraftFromInputs: repeatCount parsed as NaN — resetting to 0", { raw: app.nodes.repeatCountInput.value });
+          app.state.draft.repeatCount = 0;
+        }
       }
 
       function fillComposerFromState() {
@@ -4315,7 +4578,13 @@
 
       function createScheduledItem() {
         const fireAt = resolveScheduleTime(app.state.draft.delaySeconds, app.state.draft.scheduledAt);
-        return {
+        if (!Number.isFinite(fireAt) || fireAt <= 0) {
+          console.warn("[GNESTS:INTEGRITY] createScheduledItem: fireAt resolved to invalid value", { fireAt, delaySeconds: app.state.draft.delaySeconds, scheduledAt: app.state.draft.scheduledAt });
+        }
+        if (!app.state.draft.title) {
+          console.warn("[GNESTS:WARN] createScheduledItem: draft.title is empty — item will have blank title");
+        }
+        const item = {
           id: uid("sched"),
           source: app.state.draft.source || "local-ui",
           payload: buildNotificationPayload(app.state.draft),
@@ -4332,26 +4601,37 @@
           pausedAt: null,
           remainingMs: null
         };
+        console.log("[GNESTS:DEBUG] createScheduledItem: item created", { id: item.id, fireAt: item.fireAt, repeatEnabled: item.repeat.enabled });
+        return item;
       }
 
       function scheduleTimer(itemId) {
         const item = app.state.scheduled.find((x) => x.id === itemId);
         if (!item || item.status !== "scheduled") {
+          if (!item) {
+            console.warn("[GNESTS:WARN] scheduleTimer: item not found in scheduled list", { itemId });
+          } else {
+            console.log("[GNESTS:DEBUG] scheduleTimer: item status is '" + item.status + "', skipping", { itemId });
+          }
           return;
         }
 
         const ms = Math.max(0, item.fireAt - Date.now());
+        console.log("[GNESTS:DEBUG] scheduleTimer: scheduling", { itemId, ms, fireAt: item.fireAt, title: item.payload && item.payload.title });
         const existing = app.timers.get(itemId);
         if (existing) {
           window.clearTimeout(existing);
+          console.log("[GNESTS:DEBUG] scheduleTimer: cleared existing timer for", { itemId });
         }
 
         const timerId = window.setTimeout(async () => {
           const current = app.state.scheduled.find((x) => x.id === itemId);
           if (!current || current.status !== "scheduled") {
+            console.log("[GNESTS:DEBUG] scheduleTimer callback: item no longer scheduled, aborting", { itemId, status: current && current.status });
             return;
           }
           const driftMs = Date.now() - Number(current.fireAt || Date.now());
+          console.log("[GNESTS:DEBUG] scheduleTimer callback: firing", { itemId, driftMs });
           if (driftMs > 15000) {
             log("warn", "Scheduled task executed late. Possible background throttling or suspended tab.", {
               id: itemId,
@@ -4359,15 +4639,26 @@
               fix: "Keep app active for local timers or use relay push backend for critical timing."
             });
           }
-          const ok = await notifyNow(current.payload, "scheduled");
-          if (ok && current.repeat && current.repeat.enabled && current.repeat.remaining > 0) {
-            current.repeat.remaining -= 1;
-            current.fireAt = Date.now() + (current.repeat.everySeconds * 1000);
-            current.sendAt = current.fireAt;
-            current.status = "scheduled";
-            scheduleTimer(itemId);
-          } else {
-            current.status = ok ? "sent" : "failed";
+          try {
+            const ok = await notifyNow(current.payload, "scheduled");
+            if (ok && current.repeat && current.repeat.enabled && current.repeat.remaining > 0) {
+              current.repeat.remaining -= 1;
+              current.fireAt = Date.now() + (current.repeat.everySeconds * 1000);
+              current.sendAt = current.fireAt;
+              current.status = "scheduled";
+              console.log("[GNESTS:DEBUG] scheduleTimer: repeating", { itemId, remaining: current.repeat.remaining, nextFireAt: current.fireAt });
+              scheduleTimer(itemId);
+            } else {
+              current.status = ok ? "sent" : "failed";
+              current.completedAt = nowIso();
+              app.timers.delete(itemId);
+              if (!ok) {
+                console.warn("[GNESTS:WARN] scheduleTimer: notifyNow returned false for scheduled item", { itemId });
+              }
+            }
+          } catch (err) {
+            console.error("[GNESTS:ERROR] scheduleTimer callback: notifyNow threw", { itemId, error: String(err) });
+            current.status = "failed";
             current.completedAt = nowIso();
             app.timers.delete(itemId);
           }
@@ -4379,10 +4670,14 @@
       }
 
       function restoreAllTimers() {
-        app.state.scheduled.forEach((item) => {
-          if (item.status === "scheduled") {
-            scheduleTimer(item.id);
+        const scheduled = app.state.scheduled.filter(item => item.status === "scheduled");
+        console.log("[GNESTS:INFO] restoreAllTimers: restoring " + scheduled.length + " timers");
+        const now = Date.now();
+        scheduled.forEach((item) => {
+          if (item.fireAt < now) {
+            console.warn("[GNESTS:WARN] restoreAllTimers: item " + item.id + " has fireAt in the past (", Math.round((now - item.fireAt) / 1000), "s ago) — will fire immediately");
           }
+          scheduleTimer(item.id);
         });
       }
 
@@ -4440,15 +4735,28 @@
       }
 
       async function sendInstantFromDraft() {
-        console.log("[GNESTS] sendInstantFromDraft called", { title: app.state.draft.title, body: app.state.draft.body });
+        console.log("[GNESTS:INFO] sendInstantFromDraft called", { title: app.state.draft.title, body: app.state.draft.body });
         hydrateDraftFromInputs();
         const error = validateDraft(false);
         app.nodes.composerError.textContent = error;
         if (error) {
+          console.warn("[GNESTS:WARN] sendInstantFromDraft: validation failed", { error });
           toast("warn", error);
           return;
         }
-        await notifyNow(buildNotificationPayload(app.state.draft), "instant");
+        try {
+          const payload = buildNotificationPayload(app.state.draft);
+          if (!payload || !payload.title) {
+            console.warn("[GNESTS:INTEGRITY] sendInstantFromDraft: buildNotificationPayload returned empty/invalid payload", { payload });
+          }
+          const ok = await notifyNow(payload, "instant");
+          if (!ok) {
+            console.warn("[GNESTS:WARN] sendInstantFromDraft: notifyNow returned false — delivery may have failed");
+          }
+        } catch (err) {
+          console.error("[GNESTS:ERROR] sendInstantFromDraft: unhandled error", { error: String(err) });
+          toast("error", "Instant send failed: " + String(err));
+        }
       }
 
       function scheduleCountdownLabel(item) {
@@ -4634,6 +4942,9 @@
 
       function saveClientProfile() {
         const nickname = app.nodes.nicknameInput.value.trim();
+        if (nickname.length > 100) {
+          console.warn("[GNESTS:WARN] saveClientProfile: nickname is very long (", nickname.length, "chars)");
+        }
         app.state.client.nickname = nickname;
         persistState();
         toast("success", "Client profile saved.");
@@ -4641,29 +4952,49 @@
       }
 
       function exportLogs() {
-        const payload = JSON.stringify(app.state.logs, null, 2);
-        const blob = new Blob([payload], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `notification-lab-logs-${Date.now()}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
+        console.log("[GNESTS:INFO] exportLogs: exporting " + app.state.logs.length + " log entries");
+        try {
+          const payload = JSON.stringify(app.state.logs, null, 2);
+          const blob = new Blob([payload], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `notification-lab-logs-${Date.now()}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+        } catch (err) {
+          console.error("[GNESTS:ERROR] exportLogs: failed to export", { error: String(err) });
+          toast("error", "Log export failed: " + String(err));
+        }
       }
 
       async function fetchPublicQueue() {
+        console.log("[GNESTS:INFO] fetchPublicQueue: fetching from", { url: app.state.settings.queueUrl });
         try {
           const response = await fetch(app.state.settings.queueUrl, { cache: "no-store" });
           if (!response.ok) {
             throw new Error(`Queue fetch failed: ${response.status}`);
           }
           const data = await response.json();
+          if (!data || typeof data !== "object") {
+            console.warn("[GNESTS:INTEGRITY] fetchPublicQueue: response is not a valid object", { type: typeof data });
+          }
           const items = Array.isArray(data.items) ? data.items : [];
+          if (!Array.isArray(data.items)) {
+            console.warn("[GNESTS:INTEGRITY] fetchPublicQueue: response.items is not an array", { type: typeof data.items });
+          }
+          console.log("[GNESTS:DEBUG] fetchPublicQueue: received " + items.length + " items from remote");
           let added = 0;
+          let skippedDuplicate = 0;
 
           items.forEach((raw) => {
+            if (!raw || typeof raw !== "object") {
+              console.warn("[GNESTS:INTEGRITY] fetchPublicQueue: skipping non-object item in response", { raw });
+              return;
+            }
             const id = String(raw.id || uid("public"));
             if (app.state.processedQueueIds.includes(id)) {
+              skippedDuplicate++;
               return;
             }
             const payload = {
@@ -4695,6 +5026,9 @@
             added += 1;
           });
 
+          if (skippedDuplicate) {
+            console.log("[GNESTS:DEBUG] fetchPublicQueue: skipped " + skippedDuplicate + " already-processed items");
+          }
           app.state.runtime.lastSyncAt = nowIso();
           persistState();
           updateStatusBadges();
@@ -4715,17 +5049,40 @@
       async function processQueueEligibility() {
         const now = Date.now();
         const candidates = app.state.queue.filter((item) => (item.status === "queued" || item.status === "scheduled") && item.availableAt <= now);
+        console.log("[GNESTS:INFO] processQueueEligibility: found " + candidates.length + " eligible items out of " + app.state.queue.length + " total");
+        let processed = 0;
+        let failed = 0;
         for (const item of candidates) {
-          if (processLinkSignal(item)) {
-            item.status = "sent";
-            app.state.processedQueueIds.push(item.id);
+          if (!item.id || !item.payload) {
+            console.warn("[GNESTS:INTEGRITY] processQueueEligibility: queue item missing id or payload — skipping", { item });
+            item.status = "failed";
+            failed++;
             continue;
           }
-          const ok = await notifyNow(item.payload, "queue");
-          item.status = ok ? "sent" : "failed";
-          if (ok) {
-            app.state.processedQueueIds.push(item.id);
+          try {
+            if (processLinkSignal(item)) {
+              item.status = "sent";
+              app.state.processedQueueIds.push(item.id);
+              processed++;
+              continue;
+            }
+            const ok = await notifyNow(item.payload, "queue");
+            item.status = ok ? "sent" : "failed";
+            if (ok) {
+              app.state.processedQueueIds.push(item.id);
+              processed++;
+            } else {
+              console.warn("[GNESTS:WARN] processQueueEligibility: notifyNow returned false for item", { id: item.id });
+              failed++;
+            }
+          } catch (err) {
+            console.error("[GNESTS:ERROR] processQueueEligibility: error processing item", { id: item.id, error: String(err) });
+            item.status = "failed";
+            failed++;
           }
+        }
+        if (candidates.length) {
+          console.log("[GNESTS:INFO] processQueueEligibility: complete", { processed, failed, total: candidates.length });
         }
         persistState();
         refreshClientSelects();
@@ -4735,14 +5092,20 @@
 
       function startPolling() {
         if (app.pollingTimer) {
+          console.log("[GNESTS:DEBUG] startPolling: polling already running");
           toast("info", "Polling is already running.");
           return;
         }
         app.state.settings.pollingEnabled = true;
         persistState();
+        console.log("[GNESTS:INFO] startPolling: starting with interval " + app.state.settings.pollingIntervalMs + "ms");
         app.pollingTimer = window.setInterval(async () => {
-          await fetchPublicQueue();
-          await processQueueEligibility();
+          try {
+            await fetchPublicQueue();
+            await processQueueEligibility();
+          } catch (err) {
+            console.error("[GNESTS:ERROR] startPolling interval: polling cycle error", { error: String(err) });
+          }
         }, app.state.settings.pollingIntervalMs);
         toast("success", "Polling started.");
         log("success", "Polling enabled.", { everyMs: app.state.settings.pollingIntervalMs });
@@ -4760,8 +5123,10 @@
       }
 
       function handleScheduledAction(action, id) {
+        console.log("[GNESTS:INFO] handleScheduledAction", { action, id });
         const item = app.state.scheduled.find((x) => x.id === id);
         if (!item) {
+          console.warn("[GNESTS:WARN] handleScheduledAction: item not found", { id });
           return;
         }
 
@@ -4860,8 +5225,10 @@
       }
 
       async function handleQueueAction(action, id) {
+        console.log("[GNESTS:INFO] handleQueueAction", { action, id });
         const item = app.state.queue.find((x) => x.id === id);
         if (!item) {
+          console.warn("[GNESTS:WARN] handleQueueAction: item not found", { id });
           return;
         }
 
@@ -4874,13 +5241,20 @@
         }
 
         if (action === "publish-queue") {
-          const ok = await notifyNow(item.payload, "queue-manual");
-          if (ok) {
-            item.status = "sent";
-            app.state.processedQueueIds.push(item.id);
-            persistState();
-            renderQueueList();
-            attemptGitHubSync("queue-manual-publish");
+          try {
+            const ok = await notifyNow(item.payload, "queue-manual");
+            if (ok) {
+              item.status = "sent";
+              app.state.processedQueueIds.push(item.id);
+              persistState();
+              renderQueueList();
+              attemptGitHubSync("queue-manual-publish");
+            } else {
+              console.warn("[GNESTS:WARN] handleQueueAction(publish-queue): notifyNow returned false", { id });
+            }
+          } catch (err) {
+            console.error("[GNESTS:ERROR] handleQueueAction(publish-queue): error", { id, error: String(err) });
+            toast("error", "Queue publish failed: " + String(err));
           }
           return;
         }
@@ -4938,8 +5312,14 @@
       }
 
       function relayPublish(topic, payload) {
-        console.log("[GNESTS] relayPublish", { topic, type: payload.type, from: payload.from && payload.from.id });
-        if (!topic) return Promise.resolve();
+        console.log("[GNESTS:INFO] relayPublish", { topic, type: payload.type, from: payload.from && payload.from.id });
+        if (!topic) {
+          console.warn("[GNESTS:WARN] relayPublish: called with empty topic — skipping");
+          return Promise.resolve();
+        }
+        if (!payload || typeof payload !== "object") {
+          console.warn("[GNESTS:INTEGRITY] relayPublish: payload is not an object", { type: typeof payload });
+        }
         return fetch(`${RELAY_BASE}/${topic}`, {
           method: "POST",
           body: JSON.stringify(payload)
@@ -4951,7 +5331,11 @@
       }
 
       function relaySubscribe(topic, onSignal) {
-        console.log("[GNESTS] relaySubscribe", { topic });
+        console.log("[GNESTS:INFO] relaySubscribe", { topic });
+        if (!topic) {
+          console.warn("[GNESTS:WARN] relaySubscribe: called with empty topic — skipping");
+          return;
+        }
         relayClose();
         relayTopic = topic;
         const es = new EventSource(`${RELAY_BASE}/${topic}/sse`);
@@ -4961,12 +5345,20 @@
         es.onmessage = (e) => {
           try {
             const envelope = JSON.parse(e.data);
-            if (!envelope.message) return;
+            if (!envelope.message) {
+              console.log("[GNESTS:DEBUG] relaySubscribe: received envelope without message field");
+              return;
+            }
             const signal = JSON.parse(envelope.message);
             if (signal && signal.from && signal.from.id !== app.state.client.id) {
+              console.log("[GNESTS:DEBUG] relaySubscribe: forwarding signal to handler", { type: signal.type, from: signal.from.id });
               onSignal(signal);
+            } else if (signal && signal.from && signal.from.id === app.state.client.id) {
+              console.log("[GNESTS:DEBUG] relaySubscribe: ignoring own echo");
             }
-          } catch (_) {}
+          } catch (parseErr) {
+            console.warn("[GNESTS:WARN] relaySubscribe: failed to parse relay message", { error: String(parseErr), rawLength: e.data ? e.data.length : 0 });
+          }
         };
         es.onerror = () => {
           log("warn", "Relay SSE error — will auto-reconnect.", { topic });
@@ -4983,11 +5375,44 @@
       }
 
       function handleRelaySignal(signal) {
-        console.log("[GNESTS] handleRelaySignal received", signal);
+        console.log("[GNESTS:INFO] handleRelaySignal received", { type: signal && signal.type, fromId: signal && signal.from && signal.from.id });
         const from = signal.from;
-        if (!from || !from.id) return;
+        if (!from || !from.id) {
+          console.warn("[GNESTS:INTEGRITY] handleRelaySignal: signal missing from.id — ignoring", { signal });
+          return;
+        }
+        if (typeof from.id !== "string") {
+          console.warn("[GNESTS:INTEGRITY] handleRelaySignal: from.id is not a string", { type: typeof from.id });
+          return;
+        }
+        if (!signal.type) {
+          console.warn("[GNESTS:WARN] handleRelaySignal: signal has no type field", { signal });
+        }
+
+        // Handle remote notifications delivered via ntfy.sh relay
+        if (signal.type === "remote-notification") {
+          if (signal.to && signal.to !== app.state.client.id) {
+            console.log("[GNESTS:DEBUG] handleRelaySignal: remote-notification not for us", { to: signal.to, myId: app.state.client.id });
+            return;
+          }
+          if (signal.payload) {
+            console.log("[GNESTS:INFO] handleRelaySignal: delivering remote notification", { title: signal.payload.title, from: from.id });
+            notifyNow(signal.payload, "remote-relay");
+            toast("info", "Remote notification received from " + (from.alias || from.id));
+          }
+          return;
+        }
 
         if (signal.type === "presence" || signal.type === "link-request") {
+          // Check if device is already linked — skip duplicate processing
+          const existingDevice = app.state.linking.linkedDevices.find(d => d.id === from.id);
+          if (signal.type === "link-request" && existingDevice && existingDevice.status === "linked") {
+            console.log("[GNESTS:DEBUG] handleRelaySignal: ignoring duplicate link-request from already-linked device", { id: from.id });
+            existingDevice.lastSeenAt = nowIso();
+            persistState();
+            return;
+          }
+
           const newStatus = signal.type === "link-request" ? "linked" : "visible";
           upsertLinkedDevice({ id: from.id, alias: from.alias || from.id, status: newStatus, lastSeenAt: nowIso() });
 
@@ -4999,6 +5424,10 @@
               to: from.id,
               ts: nowIso()
             });
+            // Persist the relay topic so both devices can reconnect after reload
+            if (relayTopic) {
+              app.state.linking.activeRelayTopic = relayTopic;
+            }
             toast("success", "Device linked: " + (from.alias || from.id));
           } else {
             toast("info", "Device discovered: " + (from.alias || from.id));
@@ -5007,6 +5436,10 @@
 
         if (signal.type === "link-accept") {
           upsertLinkedDevice({ id: from.id, alias: from.alias || from.id, status: "linked", lastSeenAt: nowIso() });
+          // Persist the relay topic so both devices can reconnect after reload
+          if (relayTopic) {
+            app.state.linking.activeRelayTopic = relayTopic;
+          }
           toast("success", "Link confirmed by " + (from.alias || from.id));
         }
 
@@ -5024,63 +5457,82 @@
       }
 
       function writeDeviceHeartbeat() {
-        const beats = getDeviceHeartbeats();
-        beats[app.state.client.id] = {
-          id: app.state.client.id,
-          alias: app.state.client.nickname || app.state.client.id,
-          platform: app.state.client.platform,
-          lastSeen: Date.now(),
-          origin: window.location.origin
-        };
-        const cutoff = Date.now() - 30000;
-        Object.keys(beats).forEach(k => { if (beats[k].lastSeen < cutoff) delete beats[k]; });
-        localStorage.setItem(DEVICE_HEARTBEAT_KEY, JSON.stringify(beats));
+        try {
+          const beats = getDeviceHeartbeats();
+          beats[app.state.client.id] = {
+            id: app.state.client.id,
+            alias: app.state.client.nickname || app.state.client.id,
+            platform: app.state.client.platform,
+            lastSeen: Date.now(),
+            origin: window.location.origin
+          };
+          const cutoff = Date.now() - 30000;
+          const staleKeys = Object.keys(beats).filter(k => beats[k].lastSeen < cutoff);
+          if (staleKeys.length) {
+            console.log("[GNESTS:DEBUG] writeDeviceHeartbeat: pruning " + staleKeys.length + " stale heartbeat(s)");
+          }
+          staleKeys.forEach(k => delete beats[k]);
+          localStorage.setItem(DEVICE_HEARTBEAT_KEY, JSON.stringify(beats));
+        } catch (err) {
+          console.error("[GNESTS:ERROR] writeDeviceHeartbeat: failed to write heartbeat", { error: String(err) });
+        }
       }
 
       function startDeviceHeartbeat() {
+        console.log("[GNESTS:INFO] startDeviceHeartbeat: starting heartbeat + BroadcastChannel");
         writeDeviceHeartbeat();
         heartbeatTimer = window.setInterval(writeDeviceHeartbeat, 3000);
         if ("BroadcastChannel" in window) {
           deviceChannel = new BroadcastChannel(DEVICE_CHANNEL_NAME);
           deviceChannel.onmessage = (event) => {
-            if (event.data && event.data.type === "DEVICE_PRESENCE") {
-              const d = event.data.device;
-              if (d && d.id && d.id !== app.state.client.id) {
-                upsertLinkedDevice({ id: d.id, alias: d.alias || d.id, status: "visible", lastSeenAt: new Date(d.lastSeen).toISOString() });
-                persistState();
-                renderNearbyDevices();
-                renderLinkingPanels();
-                refreshClientSelects();
+            try {
+              if (event.data && event.data.type === "DEVICE_PRESENCE") {
+                const d = event.data.device;
+                if (d && d.id && d.id !== app.state.client.id) {
+                  upsertLinkedDevice({ id: d.id, alias: d.alias || d.id, status: "visible", lastSeenAt: new Date(d.lastSeen).toISOString() });
+                  persistState();
+                  renderNearbyDevices();
+                  renderLinkingPanels();
+                  refreshClientSelects();
+                } else if (d && !d.id) {
+                  console.warn("[GNESTS:INTEGRITY] startDeviceHeartbeat: received DEVICE_PRESENCE without device.id");
+                }
               }
-            }
-            if (event.data && event.data.type === "DEVICE_LINK_REQUEST") {
-              const req = event.data.request;
-              if (req && req.toClientId === app.state.client.id) {
-                const exists = app.state.linking.incomingRequests.some(e => e.id === req.id);
-                if (!exists) {
-                  app.state.linking.incomingRequests.unshift(req);
+              if (event.data && event.data.type === "DEVICE_LINK_REQUEST") {
+                const req = event.data.request;
+                if (req && req.toClientId === app.state.client.id) {
+                  const exists = app.state.linking.incomingRequests.some(e => e.id === req.id);
+                  if (!exists) {
+                    app.state.linking.incomingRequests.unshift(req);
+                    persistState();
+                    renderLinkingPanels();
+                    renderNearbyDevices();
+                    refreshClientSelects();
+                    toast("info", "Link request from " + (req.fromAlias || req.fromClientId));
+                  } else {
+                    console.log("[GNESTS:DEBUG] startDeviceHeartbeat: duplicate DEVICE_LINK_REQUEST ignored", { id: req.id });
+                  }
+                }
+              }
+              if (event.data && event.data.type === "DEVICE_LINK_ACCEPT") {
+                const accept = event.data.accept;
+                if (accept && accept.toClientId === app.state.client.id && accept.fromClientId !== app.state.client.id) {
+                  upsertLinkedDevice({ id: accept.fromClientId, alias: accept.fromAlias || accept.fromClientId, status: "linked", lastSeenAt: accept.approvedAt || nowIso() });
+                  app.state.linking.outgoingRequests = app.state.linking.outgoingRequests.map((r) => r.id === accept.requestId ? { ...r, status: "approved" } : r);
                   persistState();
                   renderLinkingPanels();
                   renderNearbyDevices();
                   refreshClientSelects();
-                  toast("info", "Link request from " + (req.fromAlias || req.fromClientId));
+                  toast("success", "Link approved by " + (accept.fromAlias || accept.fromClientId));
                 }
               }
-            }
-            if (event.data && event.data.type === "DEVICE_LINK_ACCEPT") {
-              const accept = event.data.accept;
-              if (accept && accept.toClientId === app.state.client.id && accept.fromClientId !== app.state.client.id) {
-                upsertLinkedDevice({ id: accept.fromClientId, alias: accept.fromAlias || accept.fromClientId, status: "linked", lastSeenAt: accept.approvedAt || nowIso() });
-                app.state.linking.outgoingRequests = app.state.linking.outgoingRequests.map((r) => r.id === accept.requestId ? { ...r, status: "approved" } : r);
-                persistState();
-                renderLinkingPanels();
-                renderNearbyDevices();
-                refreshClientSelects();
-                toast("success", "Link approved by " + (accept.fromAlias || accept.fromClientId));
-              }
+            } catch (err) {
+              console.error("[GNESTS:ERROR] startDeviceHeartbeat: BroadcastChannel message handler error", { error: String(err) });
             }
           };
           deviceChannel.postMessage({ type: "DEVICE_PRESENCE", device: { id: app.state.client.id, alias: app.state.client.nickname || app.state.client.id, platform: app.state.client.platform, lastSeen: Date.now() } });
+        } else {
+          console.warn("[GNESTS:WARN] startDeviceHeartbeat: BroadcastChannel not available — cross-tab device detection disabled");
         }
       }
 
@@ -5177,7 +5629,7 @@
       }
 
       function handleScannedQR(rawValue) {
-        console.log("[GNESTS] handleScannedQR called", { rawValue: rawValue.substring(0, 120) });
+        console.log("[GNESTS:INFO] handleScannedQR called", { rawLength: rawValue ? rawValue.length : 0, preview: rawValue ? rawValue.substring(0, 120) : "" });
         stopCameraScanner();
         toast("success", "QR code scanned!");
         log("info", "QR code scanned.", { value: rawValue });
@@ -5686,44 +6138,68 @@
       }
 
       async function boot() {
-        collectNodes();
-        loadState();
+        const bootStart = performance.now();
+        console.log("[GNESTS:INFO] boot: === APPLICATION STARTUP BEGIN ===");
+        try {
+          collectNodes();
+          loadState();
 
-        // Ensure this browser has a stable client identity for targeted testing.
-        if (!app.state.client.id) {
-          app.state.client.id = uid("client");
-        }
-        app.state.client.platform = navigator.userAgent;
-        app.state.runtime.permission = getPermissionState();
-        detectCapabilities();
-        detectPlatform();
-        fillComposerFromState();
-        renderHelpCenter();
-        setupSectionDots();
-        hydrateSettingsUI();
-        renderLinkingPanels();
-        generateDeviceQrRoute();
-        renderClientProfile();
-        renderScheduledList();
-        renderQueueList();
-        renderLogs();
-        renderNotificationHistory();
-        updateStatusBadges();
-        await refreshVersionInfo();
-        wireEvents();
-        restoreAllTimers();
-        startCountdownRerender();
+          // Ensure this browser has a stable client identity for targeted testing.
+          if (!app.state.client.id) {
+            app.state.client.id = uid("client");
+            console.log("[GNESTS:INFO] boot: generated new client id", { id: app.state.client.id });
+          } else {
+            console.log("[GNESTS:DEBUG] boot: existing client id", { id: app.state.client.id });
+          }
+          app.state.client.platform = navigator.userAgent;
+          app.state.runtime.permission = getPermissionState();
+          console.log("[GNESTS:DEBUG] boot: permission state =", app.state.runtime.permission);
+          detectCapabilities();
+          detectPlatform();
+          fillComposerFromState();
+          renderHelpCenter();
+          setupSectionDots();
+          hydrateSettingsUI();
+          renderLinkingPanels();
+          generateDeviceQrRoute();
+          renderClientProfile();
+          renderScheduledList();
+          renderQueueList();
+          renderLogs();
+          renderNotificationHistory();
+          updateStatusBadges();
+          console.log("[GNESTS:DEBUG] boot: initial renders complete, fetching version info...");
 
-        if (app.state.settings.autoRegisterSw) {
-          await registerServiceWorker();
-        }
+          try {
+            await refreshVersionInfo();
+          } catch (vErr) {
+            console.warn("[GNESTS:WARN] boot: refreshVersionInfo failed — continuing boot", { error: String(vErr) });
+          }
 
-        if (app.state.settings.pollingEnabled) {
-          startPolling();
-        }
+          wireEvents();
+          restoreAllTimers();
+          startCountdownRerender();
 
-        // Try to process queue items that were eligible while the app was closed.
-        await processQueueEligibility();
+          if (app.state.settings.autoRegisterSw) {
+            console.log("[GNESTS:INFO] boot: auto-registering service worker");
+            try {
+              await registerServiceWorker();
+            } catch (swErr) {
+              console.warn("[GNESTS:WARN] boot: auto SW registration failed — continuing", { error: String(swErr) });
+            }
+          }
+
+          if (app.state.settings.pollingEnabled) {
+            console.log("[GNESTS:INFO] boot: auto-starting polling");
+            startPolling();
+          }
+
+          // Try to process queue items that were eligible while the app was closed.
+          try {
+            await processQueueEligibility();
+          } catch (qErr) {
+            console.warn("[GNESTS:WARN] boot: processQueueEligibility failed — continuing", { error: String(qErr) });
+          }
 
         const routeUrl = new URL(window.location.href);
         if (routeUrl.searchParams.get("help") === "1") {
@@ -5805,7 +6281,11 @@
         startDeviceDiscovery();
         initHeaderScroll();
         runDiagnosticsScan();
-        await refreshProPanels();
+        try {
+          await refreshProPanels();
+        } catch (proErr) {
+          console.warn("[GNESTS:WARN] boot: refreshProPanels failed — continuing", { error: String(proErr) });
+        }
 
         if (window.NotificationLang && typeof window.NotificationLang.help === "function") {
           appendProOutput("info", "Type help and press Run script to view command dictionary.");
@@ -5817,7 +6297,13 @@
 
         window.addEventListener("beforeunload", relayClose);
 
-        log("info", "Application startup complete.");
+        const bootMs = Math.round(performance.now() - bootStart);
+        console.log("[GNESTS:INFO] boot: === APPLICATION STARTUP COMPLETE === (" + bootMs + "ms)");
+        log("info", "Application startup complete.", { bootMs });
+      } catch (fatalErr) {
+        console.error("[GNESTS:ERROR] boot: FATAL ERROR during startup — application may be in a broken state", { error: String(fatalErr), stack: fatalErr && fatalErr.stack });
+        try { toast("error", "Application startup error: " + String(fatalErr)); } catch (_) {}
+      }
       }
 
       boot();
