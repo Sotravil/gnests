@@ -3292,6 +3292,7 @@
       }
 
       async function subscribeForRealPush() {
+        console.log("[GNESTS] subscribeForRealPush called", { relayEnabled: app.state.settings.relay.enabled, hasVapid: !!app.state.settings.relay.vapidPublicKey, hasSW: "serviceWorker" in navigator, hasPush: "PushManager" in window });
         if (!app.state.settings.relay.enabled) {
           toast("warn", "Enable push relay first in settings.");
           return;
@@ -3326,6 +3327,7 @@
       }
 
       async function registerDeviceWithRelay() {
+        console.log("[GNESTS] registerDeviceWithRelay called", { relayEnabled: app.state.settings.relay.enabled, relayBase: app.state.settings.relay.baseUrl, hasSubscription: !!app.state.client.pushSubscription });
         const relayBase = app.state.settings.relay.baseUrl;
         if (!app.state.settings.relay.enabled || !relayBase) {
           toast("warn", "Configure relay base URL and enable relay first.");
@@ -3359,6 +3361,7 @@
       }
 
       async function sendRealRemoteNotification(targetClientId, payload, meta = {}) {
+        console.log("[GNESTS] sendRealRemoteNotification called", { targetClientId, relayEnabled: app.state.settings.relay.enabled, relayBase: app.state.settings.relay.baseUrl, payloadTitle: payload.title, meta });
         const relayBase = app.state.settings.relay.baseUrl;
         if (!app.state.settings.relay.enabled || !relayBase) {
           toast("warn", "Relay is not configured. Cannot send real closed-browser remote push.");
@@ -3389,6 +3392,7 @@
 
       async function sendRemoteNowFromUI() {
         const targetClientId = app.nodes.remoteSendTargetSelect.value;
+        console.log("[GNESTS] sendRemoteNowFromUI called", { targetClientId, relayEnabled: app.state.settings.relay.enabled, relayBase: app.state.settings.relay.baseUrl, linkedDevices: app.state.linking.linkedDevices.length });
         if (!targetClientId) {
           toast("warn", "Choose a linked target device first.");
           return;
@@ -3615,6 +3619,7 @@
       }
 
       function upsertLinkedDevice(device) {
+        console.log("[GNESTS] upsertLinkedDevice", { id: device && device.id, alias: device && device.alias, status: device && device.status });
         if (!device || !device.id) {
           return;
         }
@@ -3667,6 +3672,7 @@
       function requestLinkPermission() {
         const peerId = app.nodes.remotePeerIdInput.value.trim();
         const peerAlias = app.nodes.remotePeerAliasInput.value.trim();
+        console.log("[GNESTS] requestLinkPermission called", { peerId, peerAlias, ownId: app.state.client.id });
         if (!peerId) {
           toast("warn", "Peer device ID is required to request linking.");
           return;
@@ -3710,6 +3716,7 @@
       }
 
       function approveIncomingRequest(requestId) {
+        console.log("[GNESTS] approveIncomingRequest called", { requestId, incomingCount: app.state.linking.incomingRequests.length });
         const req = app.state.linking.incomingRequests.find((entry) => entry.id === requestId);
         if (!req) {
           return;
@@ -3743,6 +3750,7 @@
       }
 
       function renderLinkingPanels() {
+        console.log("[GNESTS] renderLinkingPanels", { linkedDevices: app.state.linking.linkedDevices.length, incoming: app.state.linking.incomingRequests.length });
         app.nodes.remoteLocalClientIdInput.value = app.state.client.id || "";
 
         if (!app.state.linking.incomingRequests.length) {
@@ -3918,6 +3926,7 @@
       }
 
       async function registerServiceWorker() {
+        console.log("[GNESTS] registerServiceWorker called", { swAvailable: "serviceWorker" in navigator });
         if (!("serviceWorker" in navigator)) {
           toast("error", "Service worker is not available in this browser.");
           log("error", "Service worker API unavailable.");
@@ -4138,6 +4147,7 @@
       }
 
       async function ensureNotificationPermission() {
+        console.log("[GNESTS] ensureNotificationPermission called", { supported: "Notification" in window, current: window.Notification ? Notification.permission : "N/A" });
         if (!("Notification" in window)) {
           toast("error", "Notifications are not supported in this browser.");
           log("error", "Notification API is not available.");
@@ -4205,6 +4215,7 @@
       }
 
       async function notifyNow(payload, origin) {
+        console.log("[GNESTS] notifyNow called", { origin, title: payload.title, clientTarget: payload.clientTarget, tag: payload.tag, swRegistered: app.state.runtime.swRegistered });
         // 1. Check + auto-request permission
         const perm = await ensureNotificationPermission();
         if (perm !== "granted") return false;
@@ -4429,6 +4440,7 @@
       }
 
       async function sendInstantFromDraft() {
+        console.log("[GNESTS] sendInstantFromDraft called", { title: app.state.draft.title, body: app.state.draft.body });
         hydrateDraftFromInputs();
         const error = validateDraft(false);
         app.nodes.composerError.textContent = error;
@@ -4605,6 +4617,7 @@
       }
 
       function refreshClientSelects() {
+        console.log("[GNESTS] refreshClientSelects", { linkedDevices: app.state.linking.linkedDevices.map(d => ({ id: d.id, alias: d.alias, status: d.status })) });
         const options = [
           `<option value="all">All clients</option>`,
           `<option value="${escapeHtml(app.state.client.id)}">${escapeHtml(app.state.client.id)} (this device)</option>`
@@ -4925,6 +4938,7 @@
       }
 
       function relayPublish(topic, payload) {
+        console.log("[GNESTS] relayPublish", { topic, type: payload.type, from: payload.from && payload.from.id });
         if (!topic) return Promise.resolve();
         return fetch(`${RELAY_BASE}/${topic}`, {
           method: "POST",
@@ -4937,6 +4951,7 @@
       }
 
       function relaySubscribe(topic, onSignal) {
+        console.log("[GNESTS] relaySubscribe", { topic });
         relayClose();
         relayTopic = topic;
         const es = new EventSource(`${RELAY_BASE}/${topic}/sse`);
@@ -4968,6 +4983,7 @@
       }
 
       function handleRelaySignal(signal) {
+        console.log("[GNESTS] handleRelaySignal received", signal);
         const from = signal.from;
         if (!from || !from.id) return;
 
@@ -5161,6 +5177,7 @@
       }
 
       function handleScannedQR(rawValue) {
+        console.log("[GNESTS] handleScannedQR called", { rawValue: rawValue.substring(0, 120) });
         stopCameraScanner();
         toast("success", "QR code scanned!");
         log("info", "QR code scanned.", { value: rawValue });
@@ -5256,7 +5273,7 @@
       }
 
       function wireEvents() {
-        app.nodes.versionBadgeBtn.addEventListener("click", () => routeToChangelog(true));
+        app.nodes.versionBadgeBtn.addEventListener("click", () => { console.log("[GNESTS] versionBadgeBtn clicked"); routeToChangelog(true); });
 
         app.nodes.modeToolbar.addEventListener("click", (event) => {
           const target = event.target;
@@ -5272,12 +5289,13 @@
           log("info", "Complexity mode changed.", { mode });
         });
 
-        app.nodes.acceptOnboardingBtn.addEventListener("click", acceptOnboarding);
-        app.nodes.declineOnboardingBtn.addEventListener("click", declineOnboarding);
+        app.nodes.acceptOnboardingBtn.addEventListener("click", () => { console.log("[GNESTS] acceptOnboardingBtn clicked"); acceptOnboarding(); });
+        app.nodes.declineOnboardingBtn.addEventListener("click", () => { console.log("[GNESTS] declineOnboardingBtn clicked"); declineOnboarding(); });
 
-        app.nodes.easyRequestPermBtn.addEventListener("click", requestPermission);
-        app.nodes.easyRegisterSwBtn.addEventListener("click", registerServiceWorker);
+        app.nodes.easyRequestPermBtn.addEventListener("click", () => { console.log("[GNESTS] easyRequestPermBtn clicked"); requestPermission(); });
+        app.nodes.easyRegisterSwBtn.addEventListener("click", () => { console.log("[GNESTS] easyRegisterSwBtn clicked"); registerServiceWorker(); });
         app.nodes.easyQuickSendBtn.addEventListener("click", async () => {
+          console.log("[GNESTS] easyQuickSendBtn clicked");
           const payload = {
             id: uid("notif"),
             title: "Easy mode quick test",
@@ -5294,19 +5312,20 @@
           };
           await notifyNow(payload, "easy-quick");
         });
-        app.nodes.easyOpenLinkingBtn.addEventListener("click", () => navigateTo("remote"));
+        app.nodes.easyOpenLinkingBtn.addEventListener("click", () => { console.log("[GNESTS] easyOpenLinkingBtn clicked"); navigateTo("remote"); });
 
-        app.nodes.runProScriptBtn.addEventListener("click", runProfessionalScript);
-        app.nodes.proSendTestScriptBtn.addEventListener("click", insertProSendTestScript);
+        app.nodes.runProScriptBtn.addEventListener("click", () => { console.log("[GNESTS] runProScriptBtn clicked"); runProfessionalScript(); });
+        app.nodes.proSendTestScriptBtn.addEventListener("click", () => { console.log("[GNESTS] proSendTestScriptBtn clicked"); insertProSendTestScript(); });
         app.nodes.proHelpCommandsBtn.addEventListener("click", () => {
+          console.log("[GNESTS] proHelpCommandsBtn clicked");
           if (window.NotificationLang && typeof window.NotificationLang.help === "function") {
             appendProOutput("info", window.NotificationLang.help());
           } else {
             appendProOutput("error", "Command help source is unavailable.");
           }
         });
-        app.nodes.clearProOutputBtn.addEventListener("click", clearProOutput);
-        app.nodes.proAssetUploadBtn.addEventListener("click", uploadProAsset);
+        app.nodes.clearProOutputBtn.addEventListener("click", () => { console.log("[GNESTS] clearProOutputBtn clicked"); clearProOutput(); });
+        app.nodes.proAssetUploadBtn.addEventListener("click", () => { console.log("[GNESTS] proAssetUploadBtn clicked"); uploadProAsset(); });
 
         app.nodes.proConsoleSection.addEventListener("click", async (event) => {
           const target = event.target;
@@ -5321,11 +5340,13 @@
         });
 
         app.nodes.helpToggleBtn.addEventListener("click", () => {
+          console.log("[GNESTS] helpToggleBtn clicked");
           const isHidden = app.nodes.helpCenterSection.classList.contains("hidden");
           showPanel(isHidden ? "help" : "");
         });
 
         app.nodes.hamburgerBtn.addEventListener("click", () => {
+          console.log("[GNESTS] hamburgerBtn clicked");
           const open = app.nodes.hamburgerMenu.classList.toggle("hidden");
           app.nodes.hamburgerBtn.setAttribute("aria-expanded", open ? "false" : "true");
         });
@@ -5383,11 +5404,12 @@
           }
         });
 
-        app.nodes.saveSettingsBtn.addEventListener("click", applySettingsFromUI);
-        app.nodes.subscribePushBtn.addEventListener("click", subscribeForRealPush);
-        app.nodes.registerRelayBtn.addEventListener("click", registerDeviceWithRelay);
+        app.nodes.saveSettingsBtn.addEventListener("click", () => { console.log("[GNESTS] saveSettingsBtn clicked"); applySettingsFromUI(); });
+        app.nodes.subscribePushBtn.addEventListener("click", () => { console.log("[GNESTS] subscribePushBtn clicked"); subscribeForRealPush(); });
+        app.nodes.registerRelayBtn.addEventListener("click", () => { console.log("[GNESTS] registerRelayBtn clicked"); registerDeviceWithRelay(); });
 
         app.nodes.generateRemoteLinkBtn.addEventListener("click", () => {
+          console.log("[GNESTS] generateRemoteLinkBtn clicked");
           const link = generateRemoteShareLink();
           if (link) {
             toast("success", "Remote access link generated.");
@@ -5395,6 +5417,7 @@
         });
 
         app.nodes.copyRemoteLinkBtn.addEventListener("click", async () => {
+          console.log("[GNESTS] copyRemoteLinkBtn clicked");
           const link = app.nodes.remoteShareLinkOutput.value || generateRemoteShareLink();
           if (!link) {
             return;
@@ -5408,6 +5431,7 @@
         });
 
         app.nodes.openRemoteLinkBtn.addEventListener("click", () => {
+          console.log("[GNESTS] openRemoteLinkBtn clicked");
           const link = app.nodes.remoteShareLinkOutput.value || generateRemoteShareLink();
           if (!link) {
             return;
@@ -5415,10 +5439,12 @@
           window.open(link, "_blank", "noopener");
         });
         app.nodes.generateDeviceQrBtn.addEventListener("click", () => {
+          console.log("[GNESTS] generateDeviceQrBtn clicked");
           generateDeviceQrRoute();
           toast("success", "QR route generated for device linking.");
         });
         app.nodes.copyDeviceRouteBtn.addEventListener("click", async () => {
+          console.log("[GNESTS] copyDeviceRouteBtn clicked");
           const route = app.nodes.deviceLinkRouteOutput.value || generateDeviceQrRoute();
           try {
             await navigator.clipboard.writeText(route);
@@ -5427,15 +5453,15 @@
             toast("warn", "Unable to copy route. Copy manually from the field.");
           }
         });
-        app.nodes.sendRemoteNowBtn.addEventListener("click", sendRemoteNowFromUI);
-        app.nodes.sendResponseBtn.addEventListener("click", sendResponseMessage);
-        app.nodes.runDiagnosticsBtn.addEventListener("click", runDiagnosticsScan);
-        app.nodes.openLogsFromDiagnosticsBtn.addEventListener("click", () => navigateTo("logSection"));
+        app.nodes.sendRemoteNowBtn.addEventListener("click", () => { console.log("[GNESTS] sendRemoteNowBtn clicked", { target: app.nodes.remoteSendTargetSelect.value, relayEnabled: app.state.settings.relay.enabled, relayBase: app.state.settings.relay.baseUrl }); sendRemoteNowFromUI(); });
+        app.nodes.sendResponseBtn.addEventListener("click", () => { console.log("[GNESTS] sendResponseBtn clicked", { targetClient: app.nodes.responseToClientInput.value }); sendResponseMessage(); });
+        app.nodes.runDiagnosticsBtn.addEventListener("click", () => { console.log("[GNESTS] runDiagnosticsBtn clicked"); runDiagnosticsScan(); });
+        app.nodes.openLogsFromDiagnosticsBtn.addEventListener("click", () => { console.log("[GNESTS] openLogsFromDiagnosticsBtn clicked"); navigateTo("logSection"); });
 
-        app.nodes.requestShareLinkBtn.addEventListener("click", requestLinkPermission);
-        app.nodes.announcePresenceBtn.addEventListener("click", announcePresence);
-        app.nodes.startCameraBtn.addEventListener("click", startCameraScanner);
-        app.nodes.stopCameraBtn.addEventListener("click", stopCameraScanner);
+        app.nodes.requestShareLinkBtn.addEventListener("click", () => { console.log("[GNESTS] requestShareLinkBtn clicked", { peerId: app.nodes.remotePeerIdInput.value, peerAlias: app.nodes.remotePeerAliasInput.value }); requestLinkPermission(); });
+        app.nodes.announcePresenceBtn.addEventListener("click", () => { console.log("[GNESTS] announcePresenceBtn clicked"); announcePresence(); });
+        app.nodes.startCameraBtn.addEventListener("click", () => { console.log("[GNESTS] startCameraBtn clicked"); startCameraScanner(); });
+        app.nodes.stopCameraBtn.addEventListener("click", () => { console.log("[GNESTS] stopCameraBtn clicked"); stopCameraScanner(); });
         if (app.nodes.nearbyDeviceGrid) {
           app.nodes.nearbyDeviceGrid.addEventListener("click", (event) => {
             const card = event.target.closest("[data-device-id]");
@@ -5452,12 +5478,14 @@
         initBottomNav();
 
         app.nodes.clearNotificationHistoryBtn.addEventListener("click", () => {
+          console.log("[GNESTS] clearNotificationHistoryBtn clicked");
           app.state.notificationHistory = [];
           persistState();
           renderNotificationHistory();
           toast("info", "Notification history cleared.");
         });
         app.nodes.resendLastNotificationBtn.addEventListener("click", async () => {
+          console.log("[GNESTS] resendLastNotificationBtn clicked", { historyLength: (app.state.notificationHistory || []).length });
           const history = app.state.notificationHistory || [];
           if (!history.length) { toast("warn", "No notifications in history to resend."); return; }
           const last = history[0];
@@ -5489,23 +5517,25 @@
           }
         });
 
-        qs("requestPermBtn").addEventListener("click", requestPermission);
-        qs("registerSwBtn").addEventListener("click", registerServiceWorker);
-        qs("sendNowBtn").addEventListener("click", sendInstantFromDraft);
+        qs("requestPermBtn").addEventListener("click", () => { console.log("[GNESTS] requestPermBtn clicked"); requestPermission(); });
+        qs("registerSwBtn").addEventListener("click", () => { console.log("[GNESTS] registerSwBtn clicked"); registerServiceWorker(); });
+        qs("sendNowBtn").addEventListener("click", () => { console.log("[GNESTS] sendNowBtn clicked"); sendInstantFromDraft(); });
         qs("refreshQueueBtn").addEventListener("click", async () => {
+          console.log("[GNESTS] refreshQueueBtn clicked");
           await fetchPublicQueue();
           await processQueueEligibility();
         });
-        qs("syncGithubBtn").addEventListener("click", () => attemptGitHubSync("manual"));
-        qs("startPollingBtn").addEventListener("click", startPolling);
-        qs("stopPollingBtn").addEventListener("click", stopPolling);
+        qs("syncGithubBtn").addEventListener("click", () => { console.log("[GNESTS] syncGithubBtn clicked"); attemptGitHubSync("manual"); });
+        qs("startPollingBtn").addEventListener("click", () => { console.log("[GNESTS] startPollingBtn clicked"); startPolling(); });
+        qs("stopPollingBtn").addEventListener("click", () => { console.log("[GNESTS] stopPollingBtn clicked"); stopPolling(); });
 
-        qs("scheduleLocalBtn").addEventListener("click", addScheduledFromDraft);
-        qs("addQueueBtn").addEventListener("click", () => addQueueFromDraft("local"));
-        qs("sendInstantBtn").addEventListener("click", sendInstantFromDraft);
-        qs("clearFormBtn").addEventListener("click", clearComposer);
+        qs("scheduleLocalBtn").addEventListener("click", () => { console.log("[GNESTS] scheduleLocalBtn clicked"); addScheduledFromDraft(); });
+        qs("addQueueBtn").addEventListener("click", () => { console.log("[GNESTS] addQueueBtn clicked"); addQueueFromDraft("local"); });
+        qs("sendInstantBtn").addEventListener("click", () => { console.log("[GNESTS] sendInstantBtn clicked"); sendInstantFromDraft(); });
+        qs("clearFormBtn").addEventListener("click", () => { console.log("[GNESTS] clearFormBtn clicked"); clearComposer(); });
 
         qs("generateMassBtn").addEventListener("click", () => {
+          console.log("[GNESTS] generateMassBtn clicked");
           const baseTitle = app.nodes.titleInput.value.trim() || "Mass test";
           for (let i = 0; i < 25; i += 1) {
             app.state.queue.unshift({
@@ -5535,20 +5565,23 @@
         });
 
         qs("clearCompletedBtn").addEventListener("click", () => {
+          console.log("[GNESTS] clearCompletedBtn clicked");
           app.state.scheduled = app.state.scheduled.filter((item) => item.status === "scheduled" || item.status === "paused");
           persistState();
           renderScheduledList();
           toast("info", "Completed/cancelled scheduled items removed.");
         });
 
-        qs("saveClientBtn").addEventListener("click", saveClientProfile);
+        qs("saveClientBtn").addEventListener("click", () => { console.log("[GNESTS] saveClientBtn clicked"); saveClientProfile(); });
         qs("simulateRouteBtn").addEventListener("click", () => {
+          console.log("[GNESTS] simulateRouteBtn clicked");
           const route = app.nodes.targetUrlInput.value.trim() || "/";
           window.location.href = new URL(route, window.location.href).toString();
         });
 
-        qs("exportLogsBtn").addEventListener("click", exportLogs);
+        qs("exportLogsBtn").addEventListener("click", () => { console.log("[GNESTS] exportLogsBtn clicked"); exportLogs(); });
         qs("clearLogsBtn").addEventListener("click", () => {
+          console.log("[GNESTS] clearLogsBtn clicked");
           app.state.logs = [];
           persistState();
           renderLogs();
