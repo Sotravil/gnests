@@ -89,6 +89,7 @@ function sanitizePayload(input) {
     tag: safe.tag ? String(safe.tag) : "",
     targetUrl: safe.targetUrl ? String(safe.targetUrl) : "/",
     clientTarget: safe.clientTarget ? String(safe.clientTarget) : "all",
+    responseTargetClientId: safe.responseTargetClientId ? String(safe.responseTargetClientId) : "",
     requireInteraction: Boolean(safe.requireInteraction),
     silent: Boolean(safe.silent),
     actions
@@ -110,6 +111,7 @@ async function showSafeNotification(payload) {
       id: data.id,
       targetUrl: data.targetUrl,
       clientTarget: data.clientTarget,
+      responseTargetClientId: data.responseTargetClientId,
       swVersion: SW_VERSION
     }
   });
@@ -150,16 +152,25 @@ self.addEventListener("notificationclick", (event) => {
   event.waitUntil((async () => {
     const noteData = event.notification && event.notification.data ? event.notification.data : {};
     const selectedAction = event.action ? String(event.action) : "default";
+    let normalizedTarget = new URL(targetUrl, self.location.origin);
+
+    if (selectedAction === "respond") {
+      normalizedTarget.searchParams.set("replyToNotificationId", String(noteData.id || ""));
+      if (noteData.responseTargetClientId) {
+        normalizedTarget.searchParams.set("responseTargetClientId", String(noteData.responseTargetClientId));
+      }
+    }
 
     const windowClients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-    const normalizedTarget = new URL(targetUrl, self.location.origin).toString();
+    const normalizedTargetUrl = normalizedTarget.toString();
 
     await Promise.all(windowClients.map((client) => client.postMessage({
       type: "NOTIFICATION_CLICKED",
       payload: {
         id: noteData.id || "",
         action: selectedAction,
-        targetUrl: normalizedTarget,
+        targetUrl: normalizedTargetUrl,
+        responseTargetClientId: noteData.responseTargetClientId || "",
         clickedAt: new Date().toISOString()
       }
     })));
@@ -170,7 +181,7 @@ self.addEventListener("notificationclick", (event) => {
         if (client.url.startsWith(self.location.origin)) {
           await client.focus();
           if ("navigate" in client) {
-            await client.navigate(normalizedTarget);
+            await client.navigate(normalizedTargetUrl);
           }
           return;
         }
@@ -179,7 +190,7 @@ self.addEventListener("notificationclick", (event) => {
 
     // If no window is available, open a new one to the target route.
     if (self.clients.openWindow) {
-      await self.clients.openWindow(normalizedTarget);
+      await self.clients.openWindow(normalizedTargetUrl);
     }
   })());
 });
