@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#114b5f">
   <title>Notification Lab</title>
+  <link rel="icon" type="image/svg+xml" href="./assets/icons/icon-192.svg">
   <link rel="manifest" href="./manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1416,6 +1417,7 @@
         <span class="subtle">Core behavior toggles and sync configuration</span>
       </div>
       <p class="section-purpose">Purpose: configure scheduling, polling, sync, and real relay options that control whether background notifications can be delivered and retried.</p>
+      <form autocomplete="off" onsubmit="return false">
       <div class="grid-3">
         <label>Auto register service worker
           <select id="settingAutoSwInput">
@@ -1474,8 +1476,9 @@
         <input id="settingGithubTokenInput" type="password" placeholder="ghp_...">
       </label>
       <div class="button-row">
-        <button id="saveSettingsBtn" class="secondary">Save settings</button>
+        <button id="saveSettingsBtn" type="button" class="secondary">Save settings</button>
       </div>
+      </form>
       <div class="chain-nav">
         <button class="secondary" data-nav-target="home">Back to workspace</button>
         <button class="secondary" data-open-window="settings">Open settings in new window</button>
@@ -3476,19 +3479,33 @@
       }
 
       function buildDeviceLinkRoute() {
+        const topic = generateRelayTopic();
         const url = new URL(window.location.href);
         url.searchParams.set("remote", "1");
         url.searchParams.set("connectPeer", app.state.client.id || "unknown-client");
         url.searchParams.set("connectAlias", app.state.client.nickname || app.state.client.id || "Peer");
-        return url.toString();
+        url.searchParams.set("sigTopic", topic);
+        return { url: url.toString(), topic };
       }
 
       function generateDeviceQrRoute() {
-        const route = buildDeviceLinkRoute();
+        const { url: route, topic } = buildDeviceLinkRoute();
         app.nodes.deviceLinkRouteOutput.value = route;
         const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(route)}`;
         app.nodes.deviceLinkQrImg.src = qrSrc;
-        log("info", "Device link QR route generated.", { route });
+
+        // Subscribe to the relay topic so we receive signals from the scanning device
+        relaySubscribe(topic, handleRelaySignal);
+
+        // Publish our own presence so late-joiners can find us
+        relayPublish(topic, {
+          type: "presence",
+          from: { id: app.state.client.id, alias: app.state.client.nickname || app.state.client.id, platform: app.state.client.platform },
+          ts: nowIso()
+        });
+
+        log("info", "Device link QR route generated.", { route, topic });
+        toast("info", "QR ready — waiting for device to scan...");
         return route;
       }
 
@@ -4897,6 +4914,92 @@
       let cameraStream = null;
       let scannerInterval = null;
 
+      // ─── Cross-device signaling relay via ntfy.sh (free, no auth, CORS) ───
+      const RELAY_BASE = "https://ntfy.sh";
+      let relayEventSource = null;
+      let relayTopic = null;
+
+      function generateRelayTopic() {
+        const raw = uid("sig").replace(/[^a-zA-Z0-9]/g, "");
+        return "gnests" + raw.substring(0, 20);
+      }
+
+      function relayPublish(topic, payload) {
+        if (!topic) return Promise.resolve();
+        return fetch(`${RELAY_BASE}/${topic}`, {
+          method: "POST",
+          body: JSON.stringify(payload)
+        }).then(() => {
+          log("info", "Relay signal sent.", { topic, type: payload.type });
+        }).catch((err) => {
+          log("warn", "Relay publish failed.", { error: String(err) });
+        });
+      }
+
+      function relaySubscribe(topic, onSignal) {
+        relayClose();
+        relayTopic = topic;
+        const es = new EventSource(`${RELAY_BASE}/${topic}/sse`);
+        es.onopen = () => {
+          log("info", "Relay channel open.", { topic });
+        };
+        es.onmessage = (e) => {
+          try {
+            const envelope = JSON.parse(e.data);
+            if (!envelope.message) return;
+            const signal = JSON.parse(envelope.message);
+            if (signal && signal.from && signal.from.id !== app.state.client.id) {
+              onSignal(signal);
+            }
+          } catch (_) {}
+        };
+        es.onerror = () => {
+          log("warn", "Relay SSE error — will auto-reconnect.", { topic });
+        };
+        relayEventSource = es;
+      }
+
+      function relayClose() {
+        if (relayEventSource) {
+          relayEventSource.close();
+          relayEventSource = null;
+        }
+        relayTopic = null;
+      }
+
+      function handleRelaySignal(signal) {
+        const from = signal.from;
+        if (!from || !from.id) return;
+
+        if (signal.type === "presence" || signal.type === "link-request") {
+          const newStatus = signal.type === "link-request" ? "linked" : "visible";
+          upsertLinkedDevice({ id: from.id, alias: from.alias || from.id, status: newStatus, lastSeenAt: nowIso() });
+
+          if (signal.type === "link-request") {
+            // Auto-accept and send acceptance back
+            relayPublish(relayTopic, {
+              type: "link-accept",
+              from: { id: app.state.client.id, alias: app.state.client.nickname || app.state.client.id, platform: app.state.client.platform },
+              to: from.id,
+              ts: nowIso()
+            });
+            toast("success", "Device linked: " + (from.alias || from.id));
+          } else {
+            toast("info", "Device discovered: " + (from.alias || from.id));
+          }
+        }
+
+        if (signal.type === "link-accept") {
+          upsertLinkedDevice({ id: from.id, alias: from.alias || from.id, status: "linked", lastSeenAt: nowIso() });
+          toast("success", "Link confirmed by " + (from.alias || from.id));
+        }
+
+        persistState();
+        refreshClientSelects();
+        renderLinkingPanels();
+        renderNearbyDevices();
+      }
+
       function getDeviceHeartbeats() {
         try {
           const raw = localStorage.getItem(DEVICE_HEARTBEAT_KEY);
@@ -5065,16 +5168,29 @@
           const url = new URL(rawValue);
           const connectPeer = url.searchParams.get("connectPeer");
           const connectAlias = url.searchParams.get("connectAlias") || "";
+          const sigTopic = url.searchParams.get("sigTopic");
           if (connectPeer) {
             app.nodes.remotePeerIdInput.value = connectPeer;
             app.nodes.remotePeerAliasInput.value = connectAlias;
             upsertLinkedDevice({ id: connectPeer, alias: connectAlias || connectPeer, status: "visible", lastSeenAt: nowIso() });
             if (deviceChannel) deviceChannel.postMessage({ type: "DEVICE_PRESENCE", device: { id: app.state.client.id, alias: app.state.client.nickname || app.state.client.id, platform: app.state.client.platform, lastSeen: Date.now() } });
+
+            // Use relay to notify the source device across the network
+            if (sigTopic) {
+              relaySubscribe(sigTopic, handleRelaySignal);
+              relayPublish(sigTopic, {
+                type: "link-request",
+                from: { id: app.state.client.id, alias: app.state.client.nickname || app.state.client.id, platform: app.state.client.platform },
+                to: connectPeer,
+                ts: nowIso()
+              });
+            }
+
             persistState();
             refreshClientSelects();
             renderLinkingPanels();
             renderNearbyDevices();
-            toast("success", "Device found: " + (connectAlias || connectPeer) + ". You can now request link.");
+            toast("success", "Device found: " + (connectAlias || connectPeer) + ". Linking...");
             showPanel("remote");
           } else {
             toast("info", "QR scanned but no device link data found.");
@@ -5623,19 +5739,28 @@
         if (connectPeer && connectPeer !== app.state.client.id) {
           showPanel("remote");
           const peerAlias = routeUrl.searchParams.get("connectAlias") || connectPeer;
+          const sigTopic = routeUrl.searchParams.get("sigTopic");
           app.nodes.remotePeerIdInput.value = connectPeer;
           app.nodes.remotePeerAliasInput.value = peerAlias;
 
           // Register the source device immediately
           upsertLinkedDevice({ id: connectPeer, alias: peerAlias, status: "visible", lastSeenAt: nowIso() });
 
-          // Broadcast our own presence so the source device discovers us
+          // Broadcast our own presence locally (same-origin tabs)
           if (deviceChannel) {
             deviceChannel.postMessage({ type: "DEVICE_PRESENCE", device: { id: app.state.client.id, alias: app.state.client.nickname || app.state.client.id, platform: app.state.client.platform, lastSeen: Date.now() } });
           }
 
-          // Auto-send a link request to the source device
-          requestLinkPermissionManual(connectPeer, peerAlias);
+          // Use relay to reach the source device across the network
+          if (sigTopic) {
+            relaySubscribe(sigTopic, handleRelaySignal);
+            relayPublish(sigTopic, {
+              type: "link-request",
+              from: { id: app.state.client.id, alias: app.state.client.nickname || app.state.client.id, platform: app.state.client.platform },
+              to: connectPeer,
+              ts: nowIso()
+            });
+          }
 
           persistState();
           refreshClientSelects();
@@ -5656,6 +5781,8 @@
         if (!app.state.settings.onboardingAccepted) {
           setOnboardingModalVisibility(true);
         }
+
+        window.addEventListener("beforeunload", relayClose);
 
         log("info", "Application startup complete.");
       }
